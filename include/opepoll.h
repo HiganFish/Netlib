@@ -5,21 +5,35 @@
 #ifndef NETLIB_OPEPOLL_H
 #define NETLIB_OPEPOLL_H
 
+#include <sys/epoll.h>
+#include "reactor.h"
 #include "opbase.h"
 
 namespace Net
 {
-class OpEpoll : OpBase
+
+#define EPOLL_EVENT_INIT_SIZE 32
+
+class OpEpoll : public OpBase
 {
-    void *Init(Reactor reactor) override;
+public:
+    explicit OpEpoll(Reactor *reactor);
 
-    int Add(Reactor reactor, EventHandler *event_handler) override;
+    bool Add(int fd, int option, int event_type) override;
 
-    int Del(Reactor reactor, EventHandler *event_handler) override;
+    bool Del(int fd, int option, int event_type) override;
 
-    int Dispatch(Reactor reactor, timeval *time) override;
+    bool Dispatch(int time_sec) override;
 
-    void Dealloc(Reactor reactor) override;
+    void Dealloc() override;
+
+private:
+    Net::Reactor *reactor_;
+    int epfd_;
+
+    epoll_event *events_;
+
+    static void SetNonblocking(int fd);
 };
 }
 #endif //NETLIB_OPEPOLL_H

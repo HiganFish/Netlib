@@ -5,30 +5,29 @@
 #ifndef NETLIB_OPBASE_H
 #define NETLIB_OPBASE_H
 
-#include <bits/types/struct_timeval.h>
-#include "reactor.h"
+#include <map>
 
 namespace Net {
-
-enum op_feature
-{
-    FEATURE_ET = 0x01
-};
+class EventHandler;
 
 class OpBase
 {
 public:
-    virtual void* Init(Reactor reactor);
+    OpBase();
 
-    virtual int Add(Reactor reactor, EventHandler* event_handler);
+    // 添加事件
+    virtual bool Add(int fd, int option, int event_type);
 
-    virtual int Del(Reactor reactor, EventHandler* event_handler);
+    // 删除事件
+    virtual bool Del(int fd, int option, int event_type);
 
-    virtual int Dispatch(Reactor reactor,timeval *time);
+    // 循环
+    virtual bool Dispatch(int time);
 
-    virtual void Dealloc(Reactor reactor);
+    // 清除使用空间
+    virtual void Dealloc();
 
-    op_feature op_features_;
+    std::map<int, int> *io_map_;
 };
 }
 #endif //NETLIB_OPBASE_H

@@ -8,15 +8,17 @@
 #include <cstring>
 #include <cerrno>
 #include <cstdio>
+#include <fcntl.h>
 
-#define exit_if(r, ...) \
+namespace Net
+{
+#define log_if(r, ...) \
 {   \
 if (r)  \
 {   \
     printf(__VA_ARGS__);    \
-    printf("FILE: %s, LINE: %d --- errno: %d, errormsg %s",    \
-            __FILE__, __LINE__, errno, strerror(errno));    \
+    printf("FILE: %s, LINE: %d --- errno: %d, errormsg %s\n", __FILE__, __LINE__, errno, strerror(errno));    \
 }   \
-}   \
-
+}
+}
 #endif //NETLIB_UTIL_H

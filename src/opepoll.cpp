@@ -2,30 +2,75 @@
 // Created by lsmg on 2/20/20.
 //
 
+#include <sys/epoll.h>
+#include <util.h>
 #include "opepoll.h"
 
-
-void *Net::OpEpoll::Init(Net::Reactor reactor)
+bool Net::OpEpoll::Add(int fd, int option, int event_type)
 {
-    return OpBase::Init(reactor);
+    SetNonblocking(fd);
+
+    epoll_event ev{};
+    ev.events = event_type;
+    ev.data.fd = fd;
+    int ret = epoll_ctl(epfd_, option, fd, &ev);
+    log_if(ret == -1, "epoll_ctl error\n")
+
+    return ret != -1;
+
 }
 
-int Net::OpEpoll::Add(Net::Reactor reactor, Net::EventHandler *event_handler)
+bool Net::OpEpoll::Del(int fd, int option, int event_type)
 {
-    return OpBase::Add(reactor, event_handler);
+    return OpBase::Del(0, 0, 0);
 }
 
-int Net::OpEpoll::Del(Net::Reactor reactor, Net::EventHandler *event_handler)
+bool Net::OpEpoll::Dispatch(int time)
 {
-    return OpBase::Del(reactor, event_handler);
+    int ret = epoll_wait(epfd_, events_, 32, time);
+    log_if(ret == -1, "epoll_wait failed")
+
+    for (int i = 0; i < ret; ++i)
+    {
+        int fd = events_[i].data.fd;
+        int what = events_[i].events;
+         switch (what)
+         {
+             case EPOLLIN:
+                 reactor_->io_queue->push({fd, IO_READ});
+                 break;
+             case EPOLLOUT:
+                 reactor_->io_queue->push({fd, IO_WRITE});
+                 break;
+             case EPOLLRDHUP:
+                 reactor_->io_queue->push({fd, IO_CLOSE});
+                 break;
+             default:
+                 break;
+         }
+    }
 }
 
-int Net::OpEpoll::Dispatch(Net::Reactor reactor, timeval *time)
+void Net::OpEpoll::Dealloc()
 {
-    return OpBase::Dispatch(reactor, time);
+    OpBase::Dealloc();
 }
 
-void Net::OpEpoll::Dealloc(Net::Reactor reactor)
+Net::OpEpoll::OpEpoll(Reactor *reactor)
 {
-    OpBase::Dealloc(reactor);
+    reactor_ = reactor;
+
+    events_ = new epoll_event[32];
+
+    epfd_ = epoll_create(32);
+    SetNonblocking(epfd_);
+}
+
+void Net::OpEpoll::SetNonblocking(int fd)
+{
+
+    int old_option = fcntl(fd, F_GETFL, 0);
+    log_if(old_option == -1, "fcntl get failed\n");
+    int ret = fcntl(fd, F_SETFL, old_option | O_NONBLOCK);
+    log_if(ret == -1, "fcntl set failed\n");
 }

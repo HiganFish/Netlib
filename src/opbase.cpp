@@ -4,29 +4,29 @@
 
 #include "opbase.h"
 
-void *Net::OpBase::Init(Net::Reactor reactor)
-{
-    return nullptr;
-}
-
-int Net::OpBase::Add(Net::Reactor reactor, Net::EventHandler *event_handler)
+bool Net::OpBase::Add(int fd, int option, int event_type)
 {
     return 0;
 }
 
-int Net::OpBase::Del(Net::Reactor reactor, Net::EventHandler *event_handler)
+bool Net::OpBase::Del(int fd, int option, int event_type)
 {
     return 0;
 }
 
 
-int Net::OpBase::Dispatch(Net::Reactor reactor, timeval *time)
+bool Net::OpBase::Dispatch(int time)
 {
-    return 0;
+    return 1201;
 }
 
-void Net::OpBase::Dealloc(Net::Reactor reactor)
+void Net::OpBase::Dealloc()
 {
 
+}
+
+Net::OpBase::OpBase()
+{
+    io_map_ = new std::map<int, int>;
 }
 

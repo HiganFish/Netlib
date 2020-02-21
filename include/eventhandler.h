@@ -7,28 +7,28 @@
 
 #include "reactor.h"
 
+
 namespace Net
 {
 class EventHandler
 {
 public:
-    EventHandler(EventHandler *event_handler, Reactor *reactor, int fd,
-                 short event_type, void* (*event_callback)(int, short, void*));
+    EventHandler();
 
+    // 不是用Init 使用构造函数会一直报错无匹配
+    void Init(Reactor *reactor, int fd, int option, int event_type,
+              void (*event_callback)(int, int, int, void *));
 
-private:
-
-    void* (*event_callback_)(int, short, void*){};
+    void (*event_callback_)(int fd, int option, int event_type, void* args){};
 
     int fd_{};
 
-    Reactor *reactor_{};
+    Reactor *reactor_;
 
+    // 操作
+    int option_;
     // 注册的事件
-    short event_type_{};
-
-    // 被激活原因
-    short event_res_{};
+    int event_type_;
 
 };
 

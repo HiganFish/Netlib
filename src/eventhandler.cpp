@@ -4,13 +4,17 @@
 
 #include "eventhandler.h"
 
-
-Net::EventHandler::EventHandler(Net::EventHandler *event_handler, Net::Reactor *reactor, int fd, short event_type,
-                                void *(*event_callback)(int, short, void *))
+Net::EventHandler::EventHandler()
 {
-    event_handler->reactor_ = reactor;
-    event_handler->fd_ = fd;
-    event_handler->event_type_ = event_type;
-    event_handler->event_callback_ = event_callback;
 
+}
+
+void Net::EventHandler::Init(Net::Reactor *reactor, int fd, int option, int event_type,
+                             void (*event_callback)(int, int, int, void *))
+{
+    reactor_ = reactor;
+    fd_ = fd;
+    option_ = option;
+    event_type_ = event_type;
+    event_callback_ = event_callback;
 }
