@@ -7,6 +7,7 @@ set(PUBLIC_HEADERS
         ${NETLIB_INCLUDE_DIR}/opbase.h
         ${NETLIB_INCLUDE_DIR}/opepoll.h
         ${NETLIB_INCLUDE_DIR}/listener.h
+        ${NETLIB_INCLUDE_DIR}/log.h
 )
 
 set(netlib_sources
@@ -15,6 +16,7 @@ set(netlib_sources
         opbase.cpp
         opepoll.cpp
         listener.cpp
+        log.cpp
 )
 
 add_library(net_lib ${PUBLIC_HEADERS} ${netlib_sources})
