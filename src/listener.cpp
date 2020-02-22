@@ -33,8 +33,7 @@ Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, socka
 
     listen(fd_, 64);
 
-    auto *event_handler = new EventHandler();
-    event_handler->Init(reactor, fd_, EPOLL_CTL_ADD, (int)EPOLLIN, ListenerReadCallBack);
+    auto *event_handler = new EventHandler(reactor, fd_, EPOLL_CTL_ADD, (int)EPOLLIN, ListenerReadCallBack);
 
     // 注册事件控制器
     reactor->AddEventHandler(event_handler);

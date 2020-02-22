@@ -13,11 +13,8 @@ namespace Net
 class EventHandler
 {
 public:
-    EventHandler();
-
-    // 不是用Init 使用构造函数会一直报错无匹配
-    void Init(Reactor *reactor, int fd, int option, int event_type,
-              void (*event_callback)(int, int, int, void *));
+    EventHandler(Reactor *reactor, int fd, int option, int event_type,
+                 void (*event_callback)(int, int, int, void *));
 
     void (*event_callback_)(int fd, int option, int event_type, void* args){};
 
