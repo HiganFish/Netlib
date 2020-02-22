@@ -51,5 +51,5 @@ void Net::Listener::ListenerReadCallBack(int fd, int option, int event_type, voi
     int newfd = accept(fd, addr, &client_addresslen);
     ERROR_IF(newfd == -1, "accept a new connection from %s:%d", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port))
 
-    cb(fd, &client_address, client_addresslen, nullptr);
+    cb(newfd, &client_address, client_addresslen, nullptr);
 }

@@ -104,6 +104,15 @@ void Net::Log::WriteLog(LogLevel level, unsigned char* filename, unsigned char* 
     stringbuf.append(locinfo);
 
     // 日志输出信息内容
+    if (level == LOG_LEVEL_ERROR)
+    {
+        char errmsg[100];
+        const char* format_errno = "[errno: %d][msg: %s]";
+        PrintfToBuffer(errmsg, sizeof(errmsg), format_errno,
+                errno, strerror(errno));
+        stringbuf.append(errmsg);
+    }
+
     char infobody[256];
     va_list ap;
     va_start(ap, format);

@@ -14,7 +14,7 @@ class EventHandler
 {
 public:
     EventHandler(Reactor *reactor, int fd, int option, int event_type,
-                 void (*event_callback)(int, int, int, void *));
+                 void (*event_callback)(int fd, int option, int event_type, void *));
 
     void (*event_callback_)(int fd, int option, int event_type, void* args){};
 

@@ -95,7 +95,7 @@ int Net::Reactor::EventProcess()
             case IO_READ:
                 if (fd != lisenfd_)
                 {
-                    LOG_DEBUG("a new read event fd:%d from %s:%p", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+                    LOG_DEBUG("a new read event fd:%d from %s:%d", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 }
                 handler->event_callback_(fd, 0, 0, nullptr);
                 break;
