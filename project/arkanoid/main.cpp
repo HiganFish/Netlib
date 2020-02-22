@@ -6,6 +6,7 @@
 #include <listener.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <log.h>
 
 void listen_cb(int fd, sockaddr_in *addr, size_t addrlen, void *user_data)
 {
@@ -14,6 +15,8 @@ void listen_cb(int fd, sockaddr_in *addr, size_t addrlen, void *user_data)
 
 int main()
 {
+    Net::Log::SetLogger(Net::OUT_CONSOLE, Net::LOG_LEVEL_INFO);
+
     Net::Reactor reactor{};
 
     int port = 8001;

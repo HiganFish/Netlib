@@ -9,10 +9,25 @@
 #include <iosfwd>
 #include <mutex>
 
-#define LOG_ERROR(...) Net::Log::WriteLog(Net::LOG_LEVEL_ERROR, (unsigned char *)__FILE__, (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
-#define LOG_WARN(...) Net::Log::WriteLog(Net::LOG_LEVEL_WARN, (unsigned char *)__FILE__, (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
-#define LOG_DEBUG(...) Net::Log::WriteLog(Net::LOG_LEVEL_DEBUG, (unsigned char *)__FILE__, (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
-#define LOG_INFO(...) Net::Log::WriteLog(Net::LOG_LEVEL_INFO, (unsigned char *)__FILE__, (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
+// 索引 最后一次出现 / 的位置并返回指针
+// src/opepoll.cpp 返回的指针指向/opepoll.cpp +1 后为opepoll.cpp
+#define FILENAME(x) (strrchr(x, '/')?strrchr(x, '/')+1:x)
+
+#define LOG_ERROR(...) Net::Log::WriteLog(Net::LOG_LEVEL_ERROR, (unsigned char *)FILENAME(__FILE__), (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
+#define LOG_WARN(...) Net::Log::WriteLog(Net::LOG_LEVEL_WARN, (unsigned char *)FILENAME(__FILE__), (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
+#define LOG_DEBUG(...) Net::Log::WriteLog(Net::LOG_LEVEL_DEBUG, (unsigned char *)FILENAME(__FILE__), (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
+#define LOG_INFO(...) Net::Log::WriteLog(Net::LOG_LEVEL_INFO, (unsigned char *)FILENAME(__FILE__), (unsigned char *)__FUNCTION__, __LINE__, __VA_ARGS__)
+#define ERROR_IF(r, ...)  \
+{   \
+if (r)  \
+{   \
+    LOG_ERROR(__VA_ARGS__); \
+}   \
+else    \
+{   \
+    LOG_INFO(__VA_ARGS__);  \
+}   \
+}
 
 namespace Net
 {
@@ -53,7 +68,7 @@ private:
 
     void CreateLogTxt();
 
-    static void OutputLog();
+    static void OutputLog(LogLevel level);
 
     static int PrintfToBuffer(char *buffer, int size, const char *format, ...);
 

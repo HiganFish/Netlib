@@ -4,6 +4,7 @@
 
 #include <sys/epoll.h>
 #include <util.h>
+#include <log.h>
 #include "opepoll.h"
 
 bool Net::OpEpoll::Add(int fd, int option, int event_type)
@@ -14,7 +15,7 @@ bool Net::OpEpoll::Add(int fd, int option, int event_type)
     ev.events = event_type;
     ev.data.fd = fd;
     int ret = epoll_ctl(epfd_, option, fd, &ev);
-    log_if(ret == -1, "epoll_ctl error\n")
+    ERROR_IF(ret == -1, "epoll_ctl add a new fd:%d", fd)
 
     return ret != -1;
 
@@ -27,8 +28,8 @@ bool Net::OpEpoll::Del(int fd, int option, int event_type)
 
 bool Net::OpEpoll::Dispatch(int time)
 {
-    int ret = epoll_wait(epfd_, events_, 32, time);
-    log_if(ret == -1, "epoll_wait failed")
+    int ret = epoll_wait(epfd_, events_, EPOLL_EVENT_INIT_SIZE, time);
+    ERROR_IF(ret == -1, "epoll_wait return %d", ret)
 
     for (int i = 0; i < ret; ++i)
     {
@@ -46,6 +47,7 @@ bool Net::OpEpoll::Dispatch(int time)
                  reactor_->io_queue->push({fd, IO_CLOSE});
                  break;
              default:
+                 LOG_WARN("unknow event type %d", what);
                  break;
          }
     }
@@ -60,17 +62,16 @@ Net::OpEpoll::OpEpoll(Reactor *reactor)
 {
     reactor_ = reactor;
 
-    events_ = new epoll_event[32];
+    events_ = new epoll_event[EPOLL_EVENT_INIT_SIZE];
 
-    epfd_ = epoll_create(32);
+    epfd_ = epoll_create(EPOLL_EVENT_INIT_SIZE);
     SetNonblocking(epfd_);
 }
 
 void Net::OpEpoll::SetNonblocking(int fd)
 {
-
     int old_option = fcntl(fd, F_GETFL, 0);
-    log_if(old_option == -1, "fcntl get failed\n");
+    ERROR_IF(old_option == -1, "fcntl get fd:%d", fd);
     int ret = fcntl(fd, F_SETFL, old_option | O_NONBLOCK);
-    log_if(ret == -1, "fcntl set failed\n");
+    ERROR_IF(ret == -1, "fcntl set fd:%d", fd);
 }

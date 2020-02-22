@@ -9,7 +9,7 @@
 
 Net::Log Net::Log::log_;
 std::mutex Net::Log::mutex;
-std::string Net::Log::stringbuf = "";
+std::string Net::Log::stringbuf;
 int Net::Log::fd = -1;
 
 Net::LogLevel Net::Log::loglevel_ = LOG_LEVEL_NONE;
@@ -64,7 +64,7 @@ void Net::Log::WriteLog(LogLevel level, unsigned char* filename, unsigned char* 
     // 每次输出前清空
     stringbuf.clear();
 
-    // 获取当前时间
+    // 日志时间部分
     time_t now = time(nullptr);
     char temp[64];
     // 格式化 20200101-20:40:20
@@ -75,6 +75,8 @@ void Net::Log::WriteLog(LogLevel level, unsigned char* filename, unsigned char* 
     {
         return;
     }
+
+    // 日志等级部分
     std::string out_level;
     switch (level)
     {
@@ -110,18 +112,26 @@ void Net::Log::WriteLog(LogLevel level, unsigned char* filename, unsigned char* 
     stringbuf.append(infobody);
     stringbuf.append("\n");
 
-    OutputLog();
+    OutputLog(level);
 }
 
-void Net::Log::OutputLog()
+void Net::Log::OutputLog(LogLevel level)
 {
     switch (Net::Log::GetLogPlace())
     {
         case OUT_NONE:
             return;
         case OUT_CONSOLE:
-            printf("%s", stringbuf.c_str());
+        {
+            if (level == LOG_LEVEL_ERROR)
+            {
+                fprintf(stderr, "%s", stringbuf.c_str());
+            } else
+            {
+                printf("%s", stringbuf.c_str());
+            }
             break;
+        }
         case OUT_FILE:
             write(fd, stringbuf.c_str(), stringbuf.length());
             break;

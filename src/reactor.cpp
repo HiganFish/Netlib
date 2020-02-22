@@ -3,6 +3,10 @@
 //
 
 #include <opepoll.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <log.h>
 
 #include "reactor.h"
 #include "opbase.h"
@@ -47,11 +51,13 @@ int Net::Reactor::ReactorLoop(int flags)
     {
         if (reactor_break_later_)
         {
+            LOG_DEBUG("loop break immediately");
             break;
         }
 
         if (reactor_break_)
         {
+            LOG_DEBUG("loop break later");
             break;
         }
 
@@ -76,17 +82,36 @@ int Net::Reactor::EventProcess()
         EventHandler *handler = event_handler_array[event.fd];
         int fd = event.fd;
 
+        sockaddr_in addr{};
+        socklen_t addr_len = sizeof(addr);
+
+        if (fd != lisenfd_)
+        {
+            ERROR_IF(getpeername(fd, (sockaddr*)(&addr), &addr_len) == -1, "get peername")
+        }
+
         switch (event.event_type)
         {
             case IO_READ:
+                if (fd != lisenfd_)
+                {
+                    LOG_DEBUG("a new read event fd:%d from %s:%p", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+                }
                 handler->event_callback_(fd, 0, 0, nullptr);
                 break;
             case IO_WRITE:
+                LOG_DEBUG("a new write event fd:%d from %s:%p", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 break;
             case IO_CLOSE:
+                LOG_DEBUG("fd:%d from %s:%p closed", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 break;
         }
     }
     return 0;
+}
+
+void Net::Reactor::SetLisenerFd(int fd)
+{
+    lisenfd_ = fd;
 }
 

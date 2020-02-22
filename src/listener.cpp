@@ -4,7 +4,9 @@
 #include <sys/socket.h>
 #include <util.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/epoll.h>
+#include <log.h>
 #include "listener.h"
 #include "eventhandler.h"
 
@@ -20,23 +22,23 @@ Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, socka
     addr.sin_port = htons(port);
     // 创建fd
     fd_ = socket(PF_INET, SOCK_STREAM, 0);
-    log_if(fd_ < 0, "socket failed!\n");
+    ERROR_IF(fd_ < 0, "socket create")
 
     setsockopt(fd_, SOL_SOCKET, SO_KEEPALIVE, (void*)1, 1);
 
     int ret = bind(fd_, (sockaddr*)&addr, sizeof(addr));
-    log_if(ret == -1, "bind failed\n");
+    ERROR_IF(ret == -1, "socket bind");
 
     cb = listener_cb;
 
     listen(fd_, 64);
 
     auto *event_handler = new EventHandler();
-
     event_handler->Init(reactor, fd_, EPOLL_CTL_ADD, (int)EPOLLIN, ListenerReadCallBack);
 
     // 注册事件控制器
     reactor->AddEventHandler(event_handler);
+    reactor->SetLisenerFd(fd_);
 
 }
 
@@ -48,6 +50,7 @@ void Net::Listener::ListenerReadCallBack(int fd, int option, int event_type, voi
 
     auto *addr = (sockaddr*)&client_address;
     int newfd = accept(fd, addr, &client_addresslen);
+    ERROR_IF(newfd == -1, "accept a new connection from %s:%d", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port))
 
     cb(fd, &client_address, client_addresslen, nullptr);
 }
