@@ -5,20 +5,14 @@
 #ifndef NETLIB_UTIL_H
 #define NETLIB_UTIL_H
 
-#include <cstring>
-#include <cerrno>
-#include <cstdio>
-#include <fcntl.h>
+#include <string>
+#include <cstdlib>
 
-//namespace Net
-//{
-//#define log_if(r, ...) \
-//{   \
-//if (r)  \
-//{   \
-//    printf(__VA_ARGS__);    \
-//    printf("FILE: %s, LINE: %d --- errno: %d, errormsg %s\n", __FILE__, __LINE__, errno, strerror(errno));    \
-//}   \
-//}
-//}
+namespace Net
+{
+int GetPortFromArg(int &argc, char **argv);
+
+void ReplaceAll(std::string &str, const std::string &from, const std::string &to);
+}
+
 #endif //NETLIB_UTIL_H

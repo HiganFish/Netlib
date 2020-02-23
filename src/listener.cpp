@@ -11,9 +11,9 @@
 #include "eventhandler.h"
 
 
-void (*Net::Listener::cb)(int fd, sockaddr_in *addr, size_t addrlen, void* user_data);
+void (*Net::Listener::cb)(int fd, sockaddr_in *addr, socklen_t addrlen, void* user_data);
 
-Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, sockaddr_in *addr, size_t addrlen, void* user_data), const int &port)
+Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, sockaddr_in *addr, socklen_t addrlen, void* user_data), const int &port)
 {
 
     // 使用0 初始化addr 不用填充 address.addr 因为INADDR_ANY = 0x00000000;

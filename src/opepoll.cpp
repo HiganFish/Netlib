@@ -3,8 +3,8 @@
 //
 
 #include <sys/epoll.h>
-#include <util.h>
 #include <log.h>
+#include <fcntl.h>
 #include "opepoll.h"
 
 bool Net::OpEpoll::Add(int fd, int option, int event_type)

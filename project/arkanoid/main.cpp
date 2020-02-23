@@ -10,39 +10,15 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <callback.h>
 
 int pipfd[2];
 
 Net::Reactor *preactor;
 
-void SpliceEach(int sendfd, int recvfd)
+void LisenerCb(int fd, sockaddr_in *addr, socklen_t addrlen, void *user_data)
 {
-    splice(sendfd, nullptr, pipfd[1], nullptr, 32768, SPLICE_F_MORE);
-    splice(pipfd[0], nullptr, recvfd, nullptr, 32768, SPLICE_F_MORE);
-//
-//    char* buffer[1024]{};
-//    int ret = recv(sendfd, buffer, sizeof(buffer), 0);
-//    auto* buff = (float*)buffer;
-//
-//    float result = 0;
-//    for (int i = 0; i < ret/ sizeof(float*); ++i)
-//    {
-//        result+=buff[i];
-//    }
-//    printf("%f\n", result);
-//
-//    send(recvfd, buffer, sizeof(buffer), 0);
-}
-
-void read_cb(int fd, int option, int event_type, void *user_data)
-{
-    LOG_INFO("send each a msg");
-    SpliceEach(fd, fd);
-}
-
-void listen_cb(int fd, sockaddr_in *addr, size_t addrlen, void *user_data)
-{
-    auto *handler = new Net::EventHandler(preactor, fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET, read_cb);
+    auto *handler = new Net::EventHandler(preactor, fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET, Net::Echo_Cb);
     preactor->AddEventHandler(handler);
 }
 
@@ -61,7 +37,7 @@ int main(int argc, char* argv[])
 
     int port = atoi(argv[1]);
 
-    Net::Listener listener{&reactor, listen_cb, port};
+    Net::Listener listener{&reactor, LisenerCb, port};
 
     reactor.ReactorDispatch();
 }
