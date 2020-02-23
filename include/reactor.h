@@ -5,8 +5,6 @@
 #ifndef NETLIB_REACTOR_H
 #define NETLIB_REACTOR_H
 
-
-#include <bits/types/struct_timeval.h>
 #include <array>
 #include <queue>
 

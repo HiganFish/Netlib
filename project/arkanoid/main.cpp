@@ -46,8 +46,12 @@ void listen_cb(int fd, sockaddr_in *addr, size_t addrlen, void *user_data)
     preactor->AddEventHandler(handler);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc != 2)
+    {
+        exit(0);
+    }
     pipe(pipfd);
 
     Net::Log::SetLogger(Net::OUT_CONSOLE, Net::LOG_LEVEL_INFO);
@@ -55,7 +59,7 @@ int main()
     Net::Reactor reactor{};
     preactor = &reactor;
 
-    int port = 8001;
+    int port = atoi(argv[1]);
 
     Net::Listener listener{&reactor, listen_cb, port};
 
