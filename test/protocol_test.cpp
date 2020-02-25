@@ -12,8 +12,8 @@ int main()
 
     uint8_t test[] = {1, 2, 3, 4};
 
-    msg.header.msg_type = Net::MsgType::ENTERROOM;
-    msg.header.msg_version = Net::MsgVersion::VERSION_1;
+    msg.header.msg_type = 1;
+    msg.header.msg_version = 1;
     msg.header.body_len = sizeof(test);
 
     msg.body = test;

@@ -6,8 +6,9 @@
 #define NETLIB_EVENTHANDLER_H
 
 #include "reactor.h"
+#include "protocol.h"
 
-
+#define BUFFER_SIZE 1024
 namespace Net
 {
 class EventHandler
@@ -27,6 +28,11 @@ public:
     // 注册的事件
     int event_type_;
 
+    // 对应的二进制协议解析
+    ProtoOperate proto_operate;
+
+    // 通用缓存
+    char buffer[BUFFER_SIZE];
 };
 
 }

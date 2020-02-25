@@ -12,10 +12,10 @@ uint8_t* Net::ProtoOperate::Encode(Net::ProtoMsg *msg, uint32_t *len)
     auto *data = new uint8_t[*len];
     memset(data, 0, *len);
 
-    *data = (uint8_t)msg->header.msg_type;
+    *data = msg->header.msg_type;
     data++;
 
-    *data = (uint8_t)msg->header.msg_version;
+    *data = msg->header.msg_version;
     data++;
 
     *(uint32_t*)data = msg->header.body_len;
@@ -75,10 +75,10 @@ bool Net::ProtoOperate::ParseHeader(uint8_t **r_data, uint32_t *reserved_len, ui
 
     uint8_t *data = *r_data;
 
-    current_msg->header.msg_type = MsgType(*data);
+    current_msg->header.msg_type = *data;
     data++;
 
-    current_msg->header.msg_version = MsgVersion(*data);
+    current_msg->header.msg_version = *data;
     data++;
 
     current_msg->header.body_len = *(uint32_t*)data;
@@ -118,4 +118,9 @@ Net::ProtoMsg *Net::ProtoOperate::Front()
 void Net::ProtoOperate::Pop()
 {
     msg_queue.pop();
+}
+
+bool Net::ProtoOperate::IsEmpty()
+{
+    return msg_queue.empty();
 }

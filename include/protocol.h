@@ -14,18 +14,10 @@
 
 namespace Net
 {
-enum class MsgType : uint8_t
-{
-    ENTERROOM
-};
-enum class MsgVersion : uint8_t
-{
-    VERSION_1
-};
 struct ProtoHead
 {
-    MsgType msg_type;
-    MsgVersion msg_version;
+    uint8_t msg_type;
+    uint8_t msg_version;
     uint32_t body_len;
 };
 struct ProtoMsg
@@ -47,6 +39,7 @@ public:
 
     bool Decode(uint8_t *data, uint32_t len);
 
+    bool IsEmpty();
     ProtoMsg* Front();
     void Pop();
 
