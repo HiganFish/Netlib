@@ -10,8 +10,9 @@
 #include <log.h>
 #include <http.h>
 #include <cstring>
+#include <eventhandler.h>
 
-void LisenerCb(int fd, sockaddr_in *addr, socklen_t addr_len, void* arg)
+void LisenerCb(Net::EventHandler *handler, void* arg)
 {
     char buffer[1024]{};
     getcwd(buffer, sizeof(buffer));
@@ -29,8 +30,8 @@ void LisenerCb(int fd, sockaddr_in *addr, socklen_t addr_len, void* arg)
         memset(outbuffer, 0, sizeof(outbuffer));
     }
 
-    Net::Http::SendHttpResponse(fd, out);
-    close(fd);
+    Net::Http::SendHttpResponse(handler->fd_, out);
+    close(handler->fd_);
 }
 int main(int argc, char* argv[])
 {

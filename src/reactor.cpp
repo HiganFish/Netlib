@@ -87,7 +87,7 @@ int Net::Reactor::EventProcess()
 
         if (fd != lisenfd_)
         {
-            ERROR_IF(getpeername(fd, (sockaddr*)(&addr), &addr_len) == -1, "get peername")
+            ERROR_IF(getpeername(fd, (sockaddr*)(&addr), &addr_len) == -1, "get fd:%d peername", fd)
         }
 
         switch (event.event_type)
@@ -97,7 +97,7 @@ int Net::Reactor::EventProcess()
                 {
                     LOG_DEBUG("a new read event fd:%d from %s:%d", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 }
-                handler->event_callback_(fd, 0, 0, nullptr);
+                handler->event_callback_(handler, nullptr);
                 break;
             case IO_WRITE:
                 LOG_DEBUG("a new write event fd:%d from %s:%p", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));

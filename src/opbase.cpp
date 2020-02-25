@@ -6,18 +6,18 @@
 
 bool Net::OpBase::Add(int fd, int option, int event_type)
 {
-    return 0;
+    return false;
 }
 
 bool Net::OpBase::Del(int fd, int option, int event_type)
 {
-    return 0;
+    return false;
 }
 
 
 bool Net::OpBase::Dispatch(int time)
 {
-    return 1201;
+    return false;
 }
 
 void Net::OpBase::Dealloc()

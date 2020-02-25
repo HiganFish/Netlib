@@ -10,6 +10,7 @@ set(PUBLIC_HEADERS
         ${NETLIB_INCLUDE_DIR}/log.h
         ${NETLIB_INCLUDE_DIR}/callback.h
         ${NETLIB_INCLUDE_DIR}/http.h
+        ${NETLIB_INCLUDE_DIR}/protocol.h
 )
 
 set(netlib_sources
@@ -22,6 +23,7 @@ set(netlib_sources
         log.cpp
         callback.cpp
         http.cpp
+        protocol.cpp
 )
 
 add_library(net_lib ${PUBLIC_HEADERS} ${netlib_sources})

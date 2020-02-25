@@ -11,9 +11,9 @@
 #include "eventhandler.h"
 
 
-void (*Net::Listener::cb)(int fd, sockaddr_in *addr, socklen_t addrlen, void* user_data);
+void (*Net::Listener::cb)(EventHandler *handler, void *args);
 
-Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, sockaddr_in *addr, socklen_t addrlen, void* user_data), const int &port)
+Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(EventHandler *handler, void *args), const int &port)
 {
 
     // 使用0 初始化addr 不用填充 address.addr 因为INADDR_ANY = 0x00000000;
@@ -33,7 +33,7 @@ Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, socka
 
     listen(fd_, 64);
 
-    auto *event_handler = new EventHandler(reactor, fd_, EPOLL_CTL_ADD, (int)EPOLLIN, ListenerReadCallBack);
+    auto *event_handler = new EventHandler(reactor, fd_, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP, ListenerCallBack);
 
     // 注册事件控制器
     reactor->AddEventHandler(event_handler);
@@ -41,15 +41,17 @@ Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, socka
 
 }
 
-void Net::Listener::ListenerReadCallBack(int fd, int option, int event_type, void *p)
+void Net::Listener::ListenerCallBack(EventHandler *handler, void *args)
 {
 
     sockaddr_in client_address{};
     socklen_t client_addresslen = sizeof(client_address);
 
     auto *addr = (sockaddr*)&client_address;
-    int newfd = accept(fd, addr, &client_addresslen);
+    int newfd = accept(handler->fd_, addr, &client_addresslen);
     ERROR_IF(newfd == -1, "accept a new connection from %s:%d", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port))
 
-    cb(newfd, &client_address, client_addresslen, nullptr);
+    auto *new_handler = new EventHandler(handler->reactor_, newfd, -1, -1, nullptr);
+
+    cb(new_handler,  nullptr);
 }

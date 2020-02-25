@@ -4,30 +4,25 @@
 #include <reactor.h>
 #include <eventhandler.h>
 #include <listener.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <log.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <sys/epoll.h>
 #include <callback.h>
+#include <util.h>
 
 int pipfd[2];
 
 Net::Reactor *preactor;
 
-void LisenerCb(int fd, sockaddr_in *addr, socklen_t addrlen, void *user_data)
+void LisenerCb(Net::EventHandler *handler, void *args)
 {
-    auto *handler = new Net::EventHandler(preactor, fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET, Net::Echo_Cb);
-    preactor->AddEventHandler(handler);
+    auto *phandler = new Net::EventHandler(preactor, handler->fd_, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET,
+                                          Net::EchoCallback);
+    preactor->AddEventHandler(phandler);
 }
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
-    {
-        exit(0);
-    }
     pipe(pipfd);
 
     Net::Log::SetLogger(Net::OUT_CONSOLE, Net::LOG_LEVEL_INFO);
@@ -35,7 +30,7 @@ int main(int argc, char* argv[])
     Net::Reactor reactor{};
     preactor = &reactor;
 
-    int port = atoi(argv[1]);
+    int port = Net::GetPortFromArg(argc, argv);
 
     Net::Listener listener{&reactor, LisenerCb, port};
 

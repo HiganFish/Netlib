@@ -6,7 +6,7 @@
 
 
 Net::EventHandler::EventHandler(Net::Reactor *reactor, int fd, int option, int event_type,
-                                void (*event_callback)(int, int, int, void *))
+                                void (*event_callback)(EventHandler *handler, void *))
 {
     reactor_ = reactor;
     fd_ = fd;

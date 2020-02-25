@@ -18,7 +18,6 @@ bool Net::OpEpoll::Add(int fd, int option, int event_type)
     ERROR_IF(ret == -1, "epoll_ctl add a new fd:%d", fd)
 
     return ret != -1;
-
 }
 
 bool Net::OpEpoll::Del(int fd, int option, int event_type)

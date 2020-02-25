@@ -1,0 +1,2 @@
+add_executable(protocol_test protocol_test.cpp)
+target_link_libraries(protocol_test net_lib)
