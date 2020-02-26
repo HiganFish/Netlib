@@ -136,5 +136,5 @@ bool Net::ProtoOperate::EncodeAndSendBack(int fd, uint8_t msg_type, uint8_t msg_
 
     uint8_t *data = Encode(&msg, &length);
 
-    send(fd, (char*)data, length + HEAD_SIZE, 0);
+    send(fd, (char*)data, length, 0);
 }

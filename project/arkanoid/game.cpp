@@ -77,6 +77,26 @@ Player *Game::InitPlayer(const int &fd, const char *ip, const int &port)
 void Game::RoomEnter(Player *player, const uint8_t *data, const int &data_len)
 {
     uint32_t roomid = *(uint32_t*)data;
-
     LOG_INFO("fd:%d from %s EnterRoom id:%d", player->id, player->GetPortAndIpCharArray(), roomid);
+
+    auto ret = room_map_->find(roomid);
+    if (ret != room_map_->end())
+    {
+        // 房间已经存在
+        uint8_t res_data = 0;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s EnterRoom id:%d exist", player->id, player->GetPortAndIpCharArray(), roomid);
+    }
+    auto room = new Gameroom();
+    room_map_->insert(std::pair<int, Gameroom*>(roomid, room));
+
+    if (room->EnterRoom(player))
+    {
+        // 房主进入成功
+        uint8_t res_data = 1;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s EnterRoom id:%d success", player->id, player->GetPortAndIpCharArray(), roomid);
+    }
+
+    // TODO 房主进入失败
 }
