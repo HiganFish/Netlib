@@ -4,6 +4,10 @@
 
 #ifndef NETLIB_PLAYER_H
 #define NETLIB_PLAYER_H
+
+#include <string>
+#include "protocol.h"
+
 enum class PlayerStatus
 {
     HALL,
@@ -17,13 +21,23 @@ class Player
 public:
     int id = -1;
 
+
+
+    Player(int fd, const char *ip, const int &port);
+
     bool ChangePlayerStatus(PlayerStatus status);
 
     PlayerStatus GetPlayerStatus();
 
     void SetStatus(PlayerStatus status);
-private:
 
+    char *GetPortAndIpCharArray();
+    // 对应的二进制协议解析
+    Net::ProtoOperate proto_operate;
+
+private:
+    const char *ip_;
+    int port_;
     PlayerStatus status_ = PlayerStatus::HALL;
 
 };

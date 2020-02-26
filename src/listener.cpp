@@ -49,7 +49,18 @@ void Net::Listener::ListenerCallBack(EventHandler *handler, void *args)
 
     auto *addr = (sockaddr*)&client_address;
     int newfd = accept(handler->fd_, addr, &client_addresslen);
-    ERROR_IF(newfd == -1, "accept a new connection from %s:%d", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port))
+
+    if (newfd != -1)
+    {
+        char ip_buffer[64]{};
+        inet_ntop(AF_INET, &client_address.sin_addr, ip_buffer, 64);
+
+        int port = ntohs(client_address.sin_port);
+        LOG_INFO("accept a new connection from %s:%d", ip_buffer, port);
+
+        handler->SetIpAndPort(ip_buffer, port);
+    }
+
 
     auto *new_handler = new EventHandler(handler->reactor_, newfd, -1, -1, nullptr);
 

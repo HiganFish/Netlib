@@ -4,6 +4,9 @@
 
 #include "player.h"
 
+#include <utility>
+#include <cstring>
+
 bool Player::ChangePlayerStatus(PlayerStatus status)
 {
     switch (status_)
@@ -47,4 +50,22 @@ PlayerStatus Player::GetPlayerStatus()
 void Player::SetStatus(PlayerStatus status)
 {
     status_ = status;
+}
+
+Player::Player(int fd, const char *ip, const int &port)
+{
+    id = fd;
+    ip_ = ip;
+    port_ = port;
+}
+
+char *Player::GetPortAndIpCharArray()
+{
+    char *buffer = new char[strlen(ip_) + 8]{};
+
+    strcpy(buffer, ip_);
+    buffer[strlen(ip_)] = ':';
+    sprintf(buffer + strlen(ip_) + 1, "%d", port_);
+
+    return buffer;
 }
