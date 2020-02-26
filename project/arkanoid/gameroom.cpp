@@ -4,8 +4,9 @@
 
 #include "gameroom.h"
 
-Gameroom::Gameroom()
+Gameroom::Gameroom(int roomid)
 {
+    roomid_ = roomid;
     players = new Player*[MAX_PLAYERS];
 }
 
@@ -21,6 +22,10 @@ bool Gameroom::EnterRoom(Player *player)
         {
             players[i] = player;
             player->SetStatus(PlayerStatus::ROOM_NOT_READY);
+
+            player_num_++;
+
+            player->room = this;
             return true;
         }
     }
@@ -29,12 +34,13 @@ bool Gameroom::EnterRoom(Player *player)
 
 bool Gameroom::ExitRoom(Player *player)
 {
-    if (player->ChangePlayerStatus(PlayerStatus::ROOM_NOT_READY))
+    if (player->ChangePlayerStatus(PlayerStatus::HALL))
     {
         for (int i = 0; i < MAX_PLAYERS; ++i)
         {
             if (players[i]->id == player->id)
             {
+                player_num_--;
                 delete players[i];
                 return true;
             }
@@ -53,4 +59,15 @@ bool Gameroom::CanStartGame()
         }
     }
     return true;
+}
+
+
+int Gameroom::GetRoomid()
+{
+    return roomid_;
+}
+
+int Gameroom::GetPlayerNum()
+{
+    return player_num_;
 }

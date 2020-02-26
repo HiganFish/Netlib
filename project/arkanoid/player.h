@@ -13,15 +13,16 @@ enum class PlayerStatus
     HALL,
     ROOM_NOT_READY,
     ROOM_READY,
-    ROOM_PLAYING
+    ROOM_PLAYING,
+    ROOM_PLAY_OVER
 };
 
+class Gameroom;
 class Player
 {
 public:
     int id = -1;
-
-
+    Gameroom *room;
 
     Player(int fd, const char *ip, const int &port);
 

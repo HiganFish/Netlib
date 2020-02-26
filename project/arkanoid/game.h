@@ -34,6 +34,15 @@ private:
 
     Player* InitPlayer(const int &fd, const char *ip, const int &port);
 
-    void RoomEnter(Player *player, const uint8_t *data, const int &data_len);
+    void EnterRoom(Player *player, const uint8_t *data, const int &data_len);
+
+    void ExitRoom(Player *player, const uint8_t *data, const int &data_len);
+    void CheckRoomNum(Player *player);
+
+    void Ready(Player *player, const uint8_t *data, const int &data_len);
+
+    void CancelReady(Player *player, const uint8_t *data, const int &data_len);
+
+    void Response(int data_value);
 };
 #endif //NETLIB_GAME_H

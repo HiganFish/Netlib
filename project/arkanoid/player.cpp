@@ -4,36 +4,43 @@
 
 #include "player.h"
 
-#include <utility>
+#include "gameroom.h"
 #include <cstring>
 
 bool Player::ChangePlayerStatus(PlayerStatus status)
 {
-    switch (status_)
+    switch (status)
     {
         case PlayerStatus::HALL:
-            if (status == PlayerStatus::ROOM_NOT_READY)
+            if ((status_ == PlayerStatus::ROOM_NOT_READY) || (status_ == PlayerStatus::ROOM_PLAY_OVER))
             {
                 status_ = status;
                 return true;
             }
             return false;
         case PlayerStatus::ROOM_NOT_READY:
-            if (status == PlayerStatus::ROOM_READY)
+            if (status_ == PlayerStatus::ROOM_READY)
             {
                 status_ = status;
                 return true;
             }
             return false;
         case PlayerStatus::ROOM_READY:
-            if (status == PlayerStatus::ROOM_PLAYING)
+            if (status_ == PlayerStatus::ROOM_NOT_READY)
             {
                 status_ = status;
                 return true;
             }
             return false;
         case PlayerStatus::ROOM_PLAYING:
-            if (status == PlayerStatus::HALL)
+            if (status_ == PlayerStatus::ROOM_READY)
+            {
+                status_ = status;
+                return true;
+            }
+            return false;
+        case PlayerStatus::ROOM_PLAY_OVER:
+            if (status_ == PlayerStatus::ROOM_PLAYING)
             {
                 status_ = status;
                 return true;

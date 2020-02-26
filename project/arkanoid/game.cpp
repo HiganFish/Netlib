@@ -40,13 +40,16 @@ void Game::Distribute(const int &fd, const char *ip, const int &port, const int 
         switch (static_cast<MsgType>(msg->header.msg_type))
         {
             case MsgType::ROOM_ENTER:
-                RoomEnter(player, msg->body, msg->header.body_len);
+                EnterRoom(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::ROOM_EXIT:
+                ExitRoom(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::PLAYER_READY:
+                Ready(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::PLAYER_CANCEL_READY:
+                CancelReady(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::GAME_START:
                 break;
@@ -74,29 +77,129 @@ Player *Game::InitPlayer(const int &fd, const char *ip, const int &port)
     return player;
 }
 
-void Game::RoomEnter(Player *player, const uint8_t *data, const int &data_len)
+void Game::EnterRoom(Player *player, const uint8_t *data, const int &data_len)
 {
     uint32_t roomid = *(uint32_t*)data;
-    LOG_INFO("fd:%d from %s EnterRoom id:%d", player->id, player->GetPortAndIpCharArray(), roomid);
 
     auto ret = room_map_->find(roomid);
     if (ret != room_map_->end())
     {
         // 房间已经存在
-        uint8_t res_data = 0;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s EnterRoom id:%d exist", player->id, player->GetPortAndIpCharArray(), roomid);
-    }
-    auto room = new Gameroom();
-    room_map_->insert(std::pair<int, Gameroom*>(roomid, room));
+        if (ret->second->EnterRoom(player))
+        {
+            // 进入成功
 
+            uint8_t res_data = 1;
+            player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
+            LOG_INFO("fd:%d from %s EnterRoom id:%d success", player->id, player->GetPortAndIpCharArray(), roomid);
+        }
+        else
+        {
+            // 进入失败
+            uint8_t res_data = 0;
+            player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
+            LOG_INFO("fd:%d from %s EnterRoom id:%d enter failed", player->id, player->GetPortAndIpCharArray(), roomid);
+        }
+        return;
+    }
+
+    // 房间不存在 创建房间并加入
+    auto room = new Gameroom(roomid);
+    room_map_->insert(std::pair<int, Gameroom*>(roomid, room));
     if (room->EnterRoom(player))
     {
-        // 房主进入成功
+        // 创建后进入成功
         uint8_t res_data = 1;
         player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s EnterRoom id:%d success", player->id, player->GetPortAndIpCharArray(), roomid);
+        LOG_INFO("fd:%d from %s EnterRoom id:%d create and enter success", player->id, player->GetPortAndIpCharArray(), roomid);
+        return;
     }
 
-    // TODO 房主进入失败
+    // TODO 进入失败
+}
+
+void Game::ExitRoom(Player *player, const uint8_t *data, const int &data_len)
+{
+    if (player->room == nullptr)
+    {
+        LOG_WARN("fd:%d from %s ExitRoom invalid", player->id, player->GetPortAndIpCharArray());
+        return;
+    }
+
+    if (player->room->ExitRoom(player))
+    {
+        // 退出成功
+        uint8_t res_data = 1;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::ROOM_EXIT, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s ExitRoom id:%d success", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+
+        CheckRoomNum(player);
+    }
+    else
+    {
+        // 退出失败
+        uint8_t res_data = 0;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::ROOM_EXIT, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s ExitRoom id:%d failed", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
+}
+
+// 有人推出后检查房间人数， 人数为0 则删除房间
+void Game::CheckRoomNum(Player *player)
+{
+    if (player->room->GetPlayerNum()== 0)
+    {
+        LOG_INFO("fd:%d from %s Delete room id:%d", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        room_map_->erase(player->room->GetRoomid());
+        delete player->room;
+        player->room = nullptr;
+    }
+}
+
+void Game::Ready(Player *player, const uint8_t *data, const int &data_len)
+{
+    if (player->room == nullptr)
+    {
+        LOG_WARN("fd:%d from %s Ready invalid", player->id, player->GetPortAndIpCharArray());
+        return;
+    }
+
+    if (player->ChangePlayerStatus(PlayerStatus::ROOM_READY))
+    {
+        // 准备成功
+        uint8_t res_data = 1;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_READY, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s Ready for id:%d success", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
+    else
+    {
+        // 准备失败
+        uint8_t res_data = 0;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_READY, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s Ready for id:%d failed", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
+}
+
+void Game::CancelReady(Player *player, const uint8_t *data, const int &data_len)
+{
+    if (player->room == nullptr)
+    {
+        LOG_WARN("fd:%d from %s CancelReady invalid", player->id, player->GetPortAndIpCharArray());
+        return;
+    }
+
+    if (player->ChangePlayerStatus(PlayerStatus::ROOM_NOT_READY))
+    {
+        // 取消准备成功
+        uint8_t res_data = 1;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_CANCEL_READY, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s Cancel Ready for id:%d success", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
+    else
+    {
+        // 取消准备失败
+        uint8_t res_data = 0;
+        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_CANCEL_READY, VERSION1, &res_data, 1);
+        LOG_INFO("fd:%d from %s Cancel Ready for id:%d failed", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
 }

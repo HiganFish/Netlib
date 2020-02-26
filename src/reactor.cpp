@@ -87,7 +87,7 @@ int Net::Reactor::EventProcess()
 
         if (fd != lisenfd_)
         {
-            ERROR_IF(getpeername(fd, (sockaddr*)(&addr), &addr_len) == -1, "get fd:%d peername", fd)
+            getpeername(fd, (sockaddr*)(&addr), &addr_len);
         }
 
         switch (event.event_type)
