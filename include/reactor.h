@@ -61,7 +61,7 @@ private:
     int EventProcess();
 
     // 建立fd 和EentHandler的对应关系
-    std::array<EventHandler*, 5000> event_handler_array;
+    std::array<EventHandler*, 5000> *event_handler_array;
 
     int lisenfd_;
 };

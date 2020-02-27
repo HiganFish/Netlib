@@ -4,18 +4,13 @@
 
 #include "eventhandler.h"
 
-#include <utility>
 #include <cstring>
-
 
 Net::EventHandler::EventHandler(Net::Reactor *reactor, int fd, int option, int event_type,
                                 void (*event_callback)(EventHandler *handler, void *))
+                                :reactor_(reactor), fd_(fd), option_(option),event_type_(event_type),
+                                event_callback_(event_callback), ip_(), port_(0), buffer()
 {
-    reactor_ = reactor;
-    fd_ = fd;
-    option_ = option;
-    event_type_ = event_type;
-    event_callback_ = event_callback;
 }
 
 void Net::EventHandler::SetIpAndPort(char *ip, const int &port)

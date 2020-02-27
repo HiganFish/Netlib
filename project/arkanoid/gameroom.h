@@ -5,8 +5,6 @@
 #ifndef NETLIB_GAMEROOM_H
 #define NETLIB_GAMEROOM_H
 
-#define MAX_PLAYERS 2
-
 #include "player.h"
 
 class Gameroom
@@ -27,5 +25,10 @@ private:
 
     int player_num_ = 0;
     int roomid_ = -1;
+
+    const static int MAX_PLAYERS = 2;
+
+    Gameroom(const Gameroom&);
+    Gameroom& operator=(const Gameroom&);
 };
 #endif //NETLIB_GAMEROOM_H

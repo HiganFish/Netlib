@@ -88,6 +88,8 @@ private:
 
     static int fd;
 
+    Log(const Log&);
+    Log& operator=(const Log&);
 };
 
 }

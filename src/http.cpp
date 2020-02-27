@@ -6,7 +6,7 @@
 #include <util.h>
 #include <sys/socket.h>
 
-std::string Net::Http::header = "HTTP/1.1 200 OK\r\n"
+const std::string Net::Http::header = "HTTP/1.1 200 OK\r\n"
                                 "Content-Type: text/html\r\n";
 
 void Net::Http::SendHttpResponse(int fd, std::string body)

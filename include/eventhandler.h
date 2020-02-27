@@ -7,12 +7,15 @@
 
 #include "reactor.h"
 
-#define BUFFER_SIZE 1024
 namespace Net
 {
+
 class EventHandler
 {
 public:
+    static const int BUFFER_SIZE = 1024;
+    static const int IP_SIZE = 16;
+
     Reactor *reactor_;
 
     int fd_;
@@ -25,7 +28,7 @@ public:
     // 通用缓存
     char buffer[BUFFER_SIZE];
 
-    char ip_[16]{};
+    char ip_[IP_SIZE];
     int port_;
 
     EventHandler(Reactor *reactor, int fd, int option, int event_type,
@@ -35,6 +38,9 @@ public:
 
     void SetIpAndPort(char *ip, const int &port);
 
+private:
+    EventHandler(const EventHandler&);
+    EventHandler& operator=(const EventHandler&);
 };
 
 }

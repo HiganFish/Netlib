@@ -34,6 +34,9 @@ private:
     epoll_event *events_;
 
     static void SetNonblocking(int fd);
+
+    OpEpoll(const OpEpoll&);
+    OpEpoll& operator=(const OpEpoll&);
 };
 }
 #endif //NETLIB_OPEPOLL_H

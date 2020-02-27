@@ -19,7 +19,7 @@ Game *game;
 void ReadCallback(Net::EventHandler *handler, void *args)
 {
     memset(handler->buffer, 0, sizeof(handler->buffer));
-    int len = recv(handler->fd_, handler->buffer, BUFFER_SIZE, 0);
+    int len = recv(handler->fd_, handler->buffer, sizeof(handler->buffer), 0);
 
     game->Distribute(handler->fd_, handler->ip_, handler->port_,
                      len, (uint8_t*)handler->buffer);

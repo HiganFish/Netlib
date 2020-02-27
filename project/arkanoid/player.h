@@ -41,5 +41,7 @@ private:
     int port_;
     PlayerStatus status_ = PlayerStatus::HALL;
 
+    Player(const Player&);
+    Player& operator=(const Player&);
 };
 #endif //NETLIB_PLAYER_H

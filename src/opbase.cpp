@@ -30,3 +30,8 @@ Net::OpBase::OpBase()
     io_map_ = new std::map<int, int>;
 }
 
+Net::OpBase::~OpBase()
+{
+
+}
+

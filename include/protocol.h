@@ -10,8 +10,6 @@
 #include <vector>
 #include <queue>
 
-#define HEAD_SIZE 6
-
 namespace Net
 {
 struct ProtoHead
@@ -35,6 +33,9 @@ enum class ParseStatus
 class ProtoOperate
 {
 public:
+    ProtoOperate();
+    ~ProtoOperate();
+
     bool Decode(uint8_t *data, uint32_t len);
     uint8_t* Encode(ProtoMsg *msg, uint32_t *len);
 
@@ -45,6 +46,8 @@ public:
     void Pop();
 
 private:
+    const static int HEADER_SIZE = 6;
+
     std::vector<uint8_t> reserved_data;
 
     ProtoMsg *current_msg;
@@ -56,6 +59,9 @@ private:
     bool ParseHeader(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len);
 
     bool ParseBody(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len);
+
+    ProtoOperate(const ProtoOperate&);
+    ProtoOperate& operator=(const ProtoOperate&);
 };
 
 }

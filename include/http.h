@@ -13,7 +13,11 @@ class Http
 public:
     static void SendHttpResponse(int fd, std::string body);
 
-    static std::string header;
+    const static std::string header;
+
+private:
+    Http(const Http&);
+    Http& operator=(const Http&);
 };
 }
 #endif //NETLIB_HTTP_H

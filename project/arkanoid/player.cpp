@@ -59,11 +59,10 @@ void Player::SetStatus(PlayerStatus status)
     status_ = status;
 }
 
-Player::Player(int fd, const char *ip, const int &port)
+Player::Player(int fd, const char *ip, const int &port):
+    id(fd), ip_(ip), port_(port)
 {
-    id = fd;
-    ip_ = ip;
-    port_ = port;
+    room = nullptr;
 }
 
 char *Player::GetPortAndIpCharArray()

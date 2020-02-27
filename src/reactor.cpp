@@ -23,11 +23,15 @@ Net::Reactor::Reactor()
     op_base_ = new OpEpoll(this);
 
     io_queue = new std::queue<io_event>;
+
+    event_handler_array = new std::array<EventHandler*, 5000>;
+
+    lisenfd_ = -1;
 }
 
 void Net::Reactor::AddEventHandler(Net::EventHandler *event_handler)
 {
-    event_handler_array[event_handler->fd_] = event_handler;
+    (*event_handler_array)[event_handler->fd_] = event_handler;
     op_base_->Add(event_handler->fd_ , event_handler->option_, event_handler->event_type_);
 }
 
@@ -79,7 +83,7 @@ int Net::Reactor::EventProcess()
         io_event event = io_queue->front();
         io_queue->pop();
 
-        EventHandler *handler = event_handler_array[event.fd];
+        EventHandler *handler = (*event_handler_array)[event.fd];
         int fd = event.fd;
 
         sockaddr_in addr{};

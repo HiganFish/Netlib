@@ -14,6 +14,7 @@ class OpBase
 {
 public:
     OpBase();
+    virtual ~OpBase();
 
     // 添加事件
     virtual bool Add(int fd, int option, int event_type);

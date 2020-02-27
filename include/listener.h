@@ -23,6 +23,9 @@ public:
 
     int fd_;
 
+private:
+    Listener(const Listener&);
+    Listener& operator=(const Listener&);
 };
 
 }

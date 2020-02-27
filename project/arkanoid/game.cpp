@@ -3,10 +3,6 @@
 //
 
 #include <log.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
-
 #include <netinet/in.h>
 #include <protocol.h>
 #include "game.h"

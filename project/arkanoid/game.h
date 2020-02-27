@@ -19,8 +19,6 @@ ROOM_PLAY_DATA,
 GAME_OVER
 };
 
-#define VERSION1 1
-
 class Game
 {
 public:
@@ -43,6 +41,9 @@ private:
 
     void CancelReady(Player *player, const uint8_t *data, const int &data_len);
 
-    void Response(int data_value);
+    Game(const Game&);
+    Game& operator=(const Game&);
+
+    const static int VERSION1 = 1;
 };
 #endif //NETLIB_GAME_H

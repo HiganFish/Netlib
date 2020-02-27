@@ -8,7 +8,7 @@
 
 uint8_t* Net::ProtoOperate::Encode(Net::ProtoMsg *msg, uint32_t *len)
 {
-    *len = msg->header.body_len + HEAD_SIZE;
+    *len = msg->header.body_len + HEADER_SIZE;
 
     auto *data = new uint8_t[*len];
     memset(data, 0, *len);
@@ -25,7 +25,7 @@ uint8_t* Net::ProtoOperate::Encode(Net::ProtoMsg *msg, uint32_t *len)
     memcpy(data, msg->body, msg->header.body_len);
 
     // 回退增加的部分
-    return data - HEAD_SIZE;
+    return data - HEADER_SIZE;
 }
 
 bool Net::ProtoOperate::Decode(uint8_t *data, uint32_t len)
@@ -69,7 +69,7 @@ bool Net::ProtoOperate::Decode(uint8_t *data, uint32_t len)
 
 bool Net::ProtoOperate::ParseHeader(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len)
 {
-    if (*reserved_len < HEAD_SIZE)
+    if (*reserved_len < HEADER_SIZE)
     {
         return false;
     }
@@ -84,9 +84,9 @@ bool Net::ProtoOperate::ParseHeader(uint8_t **r_data, uint32_t *reserved_len, ui
 
     current_msg->header.body_len = *(uint32_t*)data;
 
-    *reserved_len -= HEAD_SIZE;
-    *parse_len += HEAD_SIZE;
-    *r_data += HEAD_SIZE;
+    *reserved_len -= HEADER_SIZE;
+    *parse_len += HEADER_SIZE;
+    *r_data += HEADER_SIZE;
 
     parse_status = ParseStatus::PARSE_BODY;
     return true;
@@ -137,4 +137,14 @@ bool Net::ProtoOperate::EncodeAndSendBack(int fd, uint8_t msg_type, uint8_t msg_
     uint8_t *data = Encode(&msg, &length);
 
     send(fd, (char*)data, length, 0);
+}
+
+Net::ProtoOperate::ProtoOperate()
+{
+
+}
+
+Net::ProtoOperate::~ProtoOperate()
+{
+
 }
