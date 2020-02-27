@@ -126,19 +126,6 @@ bool Net::ProtoOperate::IsEmpty()
     return msg_queue.empty();
 }
 
-bool Net::ProtoOperate::EncodeAndSendBack(int fd, uint8_t msg_type, uint8_t msg_ver, uint8_t *body, uint32_t length)
-{
-    ProtoMsg msg{};
-    msg.header.msg_type = msg_type;
-    msg.header.msg_version = msg_ver;
-    msg.header.body_len = length;
-    msg.body = body;
-
-    uint8_t *data = Encode(&msg, &length);
-
-    send(fd, (char*)data, length, 0);
-}
-
 Net::ProtoOperate::ProtoOperate()
 {
 

@@ -15,9 +15,9 @@ namespace Net
 class Listener
 {
 public:
-    Listener(Reactor *reactor, void (*listener_cb)(EventHandler *handler, void* user_data), const int &port);
+    Listener(Reactor *reactor, void (*listener_cb)(int fd, char *ip_buffer, const int &port, void* args), const int &port);
 
-    static void (*cb)(EventHandler *handler, void* args);
+    static void (*cb)(int fd, char *ip_buffer, const int &port, void* args);
 
     static void ListenerCallBack(EventHandler *handler, void *args);
 

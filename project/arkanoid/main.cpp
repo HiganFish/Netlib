@@ -25,12 +25,14 @@ void ReadCallback(Net::EventHandler *handler, void *args)
                      len, (uint8_t*)handler->buffer);
 }
 
-void LisenerCb(Net::EventHandler *handler, void *args)
+void LisenerCb(int fd, char* ip_buffer, const int &port, void *args)
 {
-    auto *phandler = new Net::EventHandler(preactor, handler->fd_, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET,
+    auto *handler = new Net::EventHandler(preactor, fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET,
                                           ReadCallback);
 
-    preactor->AddEventHandler(phandler);
+    handler->SetIpAndPort(ip_buffer, port);
+    
+    preactor->AddEventHandler(handler);
 }
 
 int main(int argc, char* argv[])

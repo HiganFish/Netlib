@@ -5,6 +5,7 @@
 #include <log.h>
 #include <netinet/in.h>
 #include <protocol.h>
+#include <cstdarg>
 #include "game.h"
 
 Game::Game()
@@ -48,6 +49,7 @@ void Game::Distribute(const int &fd, const char *ip, const int &port, const int 
                 CancelReady(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::GAME_START:
+                GameStart(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::ROOM_PLAY_DATA:
                 break;
@@ -76,6 +78,8 @@ Player *Game::InitPlayer(const int &fd, const char *ip, const int &port)
 void Game::EnterRoom(Player *player, const uint8_t *data, const int &data_len)
 {
     uint32_t roomid = *(uint32_t*)data;
+    data+=4;
+    uint32_t playerid = *(uint32_t*)data;
 
     auto ret = room_map_->find(roomid);
     if (ret != room_map_->end())
@@ -84,17 +88,16 @@ void Game::EnterRoom(Player *player, const uint8_t *data, const int &data_len)
         if (ret->second->EnterRoom(player))
         {
             // 进入成功
-
-            uint8_t res_data = 1;
-            player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
-            LOG_INFO("fd:%d from %s EnterRoom id:%d success", player->id, player->GetPortAndIpCharArray(), roomid);
+            player->id_ = playerid;
+            player->room = ret->second;
+            SampleRespone(player, MsgType::ROOM_ENTER, true, true);
+            LOG_INFO("fd:%d from %s EnterRoom fd:%d success", player->fd, player->GetPortAndIpCharArray(), roomid);
         }
         else
         {
             // 进入失败
-            uint8_t res_data = 0;
-            player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
-            LOG_INFO("fd:%d from %s EnterRoom id:%d enter failed", player->id, player->GetPortAndIpCharArray(), roomid);
+            SampleRespone(player, MsgType::ROOM_ENTER, false, false);
+            LOG_INFO("fd:%d from %s EnterRoom fd:%d enter failed", player->fd, player->GetPortAndIpCharArray(), roomid);
         }
         return;
     }
@@ -105,9 +108,10 @@ void Game::EnterRoom(Player *player, const uint8_t *data, const int &data_len)
     if (room->EnterRoom(player))
     {
         // 创建后进入成功
-        uint8_t res_data = 1;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t)MsgType::ROOM_ENTER, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s EnterRoom id:%d create and enter success", player->id, player->GetPortAndIpCharArray(), roomid);
+        player->id_ = playerid;
+        player->room = room;
+        SampleRespone(player, MsgType::ROOM_ENTER, true, true);
+        LOG_INFO("fd:%d from %s EnterRoom fd:%d create and enter success", player->fd, player->GetPortAndIpCharArray(), roomid);
         return;
     }
 
@@ -116,36 +120,33 @@ void Game::EnterRoom(Player *player, const uint8_t *data, const int &data_len)
 
 void Game::ExitRoom(Player *player, const uint8_t *data, const int &data_len)
 {
-    if (player->room == nullptr)
+    if (!IsPlayerValid(player, "fd:%d from %s ExitRoom invalid", player->fd, player->GetPortAndIpCharArray()))
     {
-        LOG_WARN("fd:%d from %s ExitRoom invalid", player->id, player->GetPortAndIpCharArray());
         return;
     }
 
     if (player->room->ExitRoom(player))
     {
         // 退出成功
-        uint8_t res_data = 1;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::ROOM_EXIT, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s ExitRoom id:%d success", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        SampleRespone(player, MsgType::ROOM_EXIT, true, true);
+        LOG_INFO("fd:%d from %s ExitRoom fd:%d success", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
 
-        CheckRoomNum(player);
+        CheckRoomPlayerNum(player);
     }
     else
     {
         // 退出失败
-        uint8_t res_data = 0;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::ROOM_EXIT, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s ExitRoom id:%d failed", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        SampleRespone(player, MsgType::ROOM_EXIT, false, false);
+        LOG_INFO("fd:%d from %s ExitRoom fd:%d failed", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
     }
 }
 
 // 有人推出后检查房间人数， 人数为0 则删除房间
-void Game::CheckRoomNum(Player *player)
+void Game::CheckRoomPlayerNum(Player *player)
 {
     if (player->room->GetPlayerNum()== 0)
     {
-        LOG_INFO("fd:%d from %s Delete room id:%d", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        LOG_INFO("fd:%d from %s Delete room fd:%d", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
         room_map_->erase(player->room->GetRoomid());
         delete player->room;
         player->room = nullptr;
@@ -154,48 +155,123 @@ void Game::CheckRoomNum(Player *player)
 
 void Game::Ready(Player *player, const uint8_t *data, const int &data_len)
 {
-    if (player->room == nullptr)
+    if (!IsPlayerValid(player, "fd:%d from %s Ready invalid", player->fd, player->GetPortAndIpCharArray()))
     {
-        LOG_WARN("fd:%d from %s Ready invalid", player->id, player->GetPortAndIpCharArray());
         return;
     }
 
     if (player->ChangePlayerStatus(PlayerStatus::ROOM_READY))
     {
         // 准备成功
-        uint8_t res_data = 1;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_READY, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s Ready for id:%d success", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        SampleRespone(player, MsgType::PLAYER_READY, true, true);
+        LOG_INFO("fd:%d from %s Ready for fd:%d success", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
     }
     else
     {
         // 准备失败
-        uint8_t res_data = 0;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_READY, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s Ready for id:%d failed", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        SampleRespone(player, MsgType::PLAYER_READY, false, false);
+        LOG_INFO("fd:%d from %s Ready for fd:%d failed", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
     }
 }
 
 void Game::CancelReady(Player *player, const uint8_t *data, const int &data_len)
 {
-    if (player->room == nullptr)
+    if (!IsPlayerValid(player, "fd:%d from %s CancelReady invalid", player->fd, player->GetPortAndIpCharArray()))
     {
-        LOG_WARN("fd:%d from %s CancelReady invalid", player->id, player->GetPortAndIpCharArray());
         return;
     }
 
     if (player->ChangePlayerStatus(PlayerStatus::ROOM_NOT_READY))
     {
         // 取消准备成功
-        uint8_t res_data = 1;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_CANCEL_READY, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s Cancel Ready for id:%d success", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        SampleRespone(player, MsgType::PLAYER_CANCEL_READY, true, true);
+        LOG_INFO("fd:%d from %s Cancel Ready for roomid:%d success", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
     }
     else
     {
         // 取消准备失败
-        uint8_t res_data = 0;
-        player->proto_operate.EncodeAndSendBack(player->id, (uint8_t) MsgType::PLAYER_CANCEL_READY, VERSION1, &res_data, 1);
-        LOG_INFO("fd:%d from %s Cancel Ready for id:%d failed", player->id, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+        SampleRespone(player, MsgType::PLAYER_CANCEL_READY, false, false);
+        LOG_INFO("fd:%d from %s Cancel Ready for roomid:%d failed", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
     }
+}
+
+void Game::GameStart(Player *player, const uint8_t *data, const int &data_len)
+{
+
+    if (!IsPlayerValid(player, "fd:%d from %s GameStart invalid", player->fd, player->GetPortAndIpCharArray()))
+    {
+        return;
+    }
+
+    if (player->room->CanStartGame())
+    {
+        // 可以开始游戏
+        SampleRespone(player, MsgType::GAME_START, true, true);
+        LOG_INFO("fd:%d from %s Start for roomid:%d success", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
+    else
+    {
+        // 游戏人数不足
+        SampleRespone(player, MsgType::GAME_START, false, false);
+        LOG_INFO("fd:%d from %s Start for roomid:%d failed", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+    }
+
+}
+
+void Game::SampleRespone(Player *player, MsgType type, bool result, bool broadcast)
+{
+    if (broadcast)
+    {
+        auto player_vector = player->room->GetPlayerVector();
+        const int BUFFER_SIZE = 5;
+
+        auto res_data = new uint8_t[BUFFER_SIZE]{};
+        auto res_temp = res_data;
+        *res_temp = result ? 1 : 0;
+        res_temp++;
+        *(uint32_t *) res_temp =player->id_;
+
+        for (auto player_temp : *player_vector)
+        {
+            if (player_temp == nullptr)
+            {
+                continue;
+            }
+            Response(player_temp, (uint8_t)type, VERSION1, res_data, BUFFER_SIZE);
+        }
+        delete []res_data;
+    }
+    else
+    {
+        uint8_t res_data = result ? 1:0;
+        Response(player, (uint8_t)type, VERSION1, &res_data, 1);
+    }
+}
+
+void Game::Response(Player *player, uint8_t msg_type, uint8_t msg_ver, uint8_t *body, uint32_t length)
+{
+    Net::ProtoMsg msg{};
+    msg.header.msg_type = msg_type;
+    msg.header.msg_version = msg_ver;
+    msg.header.body_len = length;
+    msg.body = body;
+
+    uint8_t *data = player->proto_operate.Encode(&msg, &length);
+
+    send(player->fd, (char*)data, length, 0);
+}
+
+bool Game::IsPlayerValid(Player *player, const char *format, ...)
+{
+    if (player->room == nullptr)
+    {
+        va_list args;
+        va_start(args, format);
+        LOG_WARN(format, args);
+        va_end(args);
+
+        return false;
+    }
+
+    return true;
 }

@@ -39,8 +39,6 @@ public:
     bool Decode(uint8_t *data, uint32_t len);
     uint8_t* Encode(ProtoMsg *msg, uint32_t *len);
 
-    bool EncodeAndSendBack(int fd, uint8_t msg_type, uint8_t msg_ver, uint8_t *body, uint32_t length);
-
     bool IsEmpty();
     ProtoMsg* Front();
     void Pop();

@@ -70,7 +70,5 @@ Net::OpEpoll::OpEpoll(Reactor *reactor)
 void Net::OpEpoll::SetNonblocking(int fd)
 {
     int old_option = fcntl(fd, F_GETFL, 0);
-    ERROR_IF(old_option == -1, "fcntl get fd:%d", fd);
-    int ret = fcntl(fd, F_SETFL, old_option | O_NONBLOCK);
-    ERROR_IF(ret == -1, "fcntl set fd:%d", fd);
+    fcntl(fd, F_SETFL, old_option | O_NONBLOCK);
 }

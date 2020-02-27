@@ -19,7 +19,7 @@ bool Player::ChangePlayerStatus(PlayerStatus status)
             }
             return false;
         case PlayerStatus::ROOM_NOT_READY:
-            if (status_ == PlayerStatus::ROOM_READY)
+            if ((status_ == PlayerStatus::ROOM_READY) || (status_ == PlayerStatus::HALL))
             {
                 status_ = status;
                 return true;
@@ -60,7 +60,7 @@ void Player::SetStatus(PlayerStatus status)
 }
 
 Player::Player(int fd, const char *ip, const int &port):
-    id(fd), ip_(ip), port_(port)
+        fd(fd), ip_(ip), port_(port)
 {
     room = nullptr;
 }
@@ -74,4 +74,9 @@ char *Player::GetPortAndIpCharArray()
     sprintf(buffer + strlen(ip_) + 1, "%d", port_);
 
     return buffer;
+}
+
+Player::Player()
+{
+    status_ = PlayerStatus::HALL;
 }

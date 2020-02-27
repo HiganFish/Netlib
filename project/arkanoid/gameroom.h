@@ -10,6 +10,9 @@
 class Gameroom
 {
 public:
+
+
+
     explicit Gameroom(int roomid);
     bool EnterRoom(Player *player);
 
@@ -20,13 +23,15 @@ public:
     int GetRoomid();
 
     int GetPlayerNum();
+
+    std::vector<Player*> *GetPlayerVector() const;
+
 private:
-    Player **players;
+    const static int MAX_PLAYERS = 2;
+    std::vector<Player*> *player_vector_;
 
     int player_num_ = 0;
     int roomid_ = -1;
-
-    const static int MAX_PLAYERS = 2;
 
     Gameroom(const Gameroom&);
     Gameroom& operator=(const Gameroom&);

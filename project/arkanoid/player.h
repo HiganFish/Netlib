@@ -21,7 +21,10 @@ class Gameroom;
 class Player
 {
 public:
-    int id = -1;
+    Player();
+
+    int id_ = -1;
+    int fd = -1;
     Gameroom *room;
 
     Player(int fd, const char *ip, const int &port);

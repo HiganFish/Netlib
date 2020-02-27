@@ -7,43 +7,47 @@
 Gameroom::Gameroom(int roomid)
 {
     roomid_ = roomid;
-    players = new Player*[MAX_PLAYERS];
+    player_vector_ = new std::vector<Player*>;
+
 }
 
 bool Gameroom::EnterRoom(Player *player)
 {
-    if (player->GetPlayerStatus() != PlayerStatus::HALL)
+    if (player_num_ >= MAX_PLAYERS)
     {
         return false;
     }
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    if (!player->ChangePlayerStatus(PlayerStatus::ROOM_NOT_READY))
     {
-        if (players[i] == nullptr)
+        return false;
+    }
+    for(Player *player_temp : *player_vector_)
+    {
+        if (player_temp->fd == player->fd)
         {
-            players[i] = player;
-            player->SetStatus(PlayerStatus::ROOM_NOT_READY);
-
-            player_num_++;
-
-            player->room = this;
-            return true;
+            return false;
         }
     }
-    return false;
+    player_num_++;
+    player_vector_->push_back(player);
+    return true;
 }
 
 bool Gameroom::ExitRoom(Player *player)
 {
     if (player->ChangePlayerStatus(PlayerStatus::HALL))
     {
-        for (int i = 0; i < MAX_PLAYERS; ++i)
+        int i = 0;
+        for(auto player_temp : *player_vector_)
         {
-            if (players[i]->id == player->id)
+            if (player_temp->fd == player->fd)
             {
                 player_num_--;
-                delete players[i];
+                delete player_temp;
+                player_vector_->erase(player_vector_->begin() + i);
                 return true;
             }
+            i++;
         }
     }
     return false;
@@ -51,9 +55,13 @@ bool Gameroom::ExitRoom(Player *player)
 
 bool Gameroom::CanStartGame()
 {
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    if (player_num_ != MAX_PLAYERS)
     {
-        if (players[i]->GetPlayerStatus() != PlayerStatus::ROOM_READY)
+        return false;
+    }
+    for(auto player_temp : *player_vector_)
+    {
+        if (player_temp->GetPlayerStatus() != PlayerStatus::ROOM_READY)
         {
             return false;
         }
@@ -70,4 +78,9 @@ int Gameroom::GetRoomid()
 int Gameroom::GetPlayerNum()
 {
     return player_num_;
+}
+
+std::vector<Player *> *Gameroom::GetPlayerVector() const
+{
+    return player_vector_;
 }

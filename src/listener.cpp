@@ -11,9 +11,9 @@
 #include "eventhandler.h"
 
 
-void (*Net::Listener::cb)(EventHandler *handler, void *args);
+void (*Net::Listener::cb)(int fd, char *ip_buffer, const int &port, void* args);
 
-Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(EventHandler *handler, void *args), const int &port)
+Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, char *ip_buffer, const int &port, void* args), const int &port)
 {
 
     // 使用0 初始化addr 不用填充 address.addr 因为INADDR_ANY = 0x00000000;
@@ -54,15 +54,9 @@ void Net::Listener::ListenerCallBack(EventHandler *handler, void *args)
     {
         char ip_buffer[64]{};
         inet_ntop(AF_INET, &client_address.sin_addr, ip_buffer, 64);
-
         int port = ntohs(client_address.sin_port);
         LOG_INFO("accept a new connection from %s:%d", ip_buffer, port);
 
-        handler->SetIpAndPort(ip_buffer, port);
+        cb(newfd, ip_buffer, port, nullptr);
     }
-
-
-    auto *new_handler = new EventHandler(handler->reactor_, newfd, -1, -1, nullptr);
-
-    cb(new_handler,  nullptr);
 }
