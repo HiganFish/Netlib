@@ -6,7 +6,7 @@
 #define NETLIB_PROTOCOL_H
 
 
-#include <bits/stdint-uintn.h>
+#include <cstdint>
 #include <vector>
 #include <queue>
 
