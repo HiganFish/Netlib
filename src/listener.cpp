@@ -24,7 +24,7 @@ Net::Listener::Listener(Net::Reactor *reactor, void (*listener_cb)(int fd, char 
     fd_ = socket(PF_INET, SOCK_STREAM, 0);
     ERROR_IF(fd_ < 0, "socket create")
 
-    setsockopt(fd_, SOL_SOCKET, SO_KEEPALIVE, (void*)1, 1);
+    setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR , (void*)1, 1);
 
     int ret = bind(fd_, (sockaddr*)&addr, sizeof(addr));
     ERROR_IF(ret == -1, "socket bind");

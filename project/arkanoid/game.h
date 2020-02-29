@@ -44,6 +44,8 @@ private:
 
     void GameStart(Player *player, const uint8_t *data, const int &data_len);
 
+    void GamePlay(Player *player, const uint8_t *data, const int &data_len);
+
     void SampleRespone(Player *player, MsgType type, bool result, bool broadcast);
     void Response(Player *player, uint8_t msg_type, uint8_t msg_ver, uint8_t *body, uint32_t length);
 

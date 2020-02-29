@@ -52,6 +52,7 @@ void Game::Distribute(const int &fd, const char *ip, const int &port, const int 
                 GameStart(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::ROOM_PLAY_DATA:
+                GamePlay(player, msg->body, msg->header.body_len);
                 break;
             case MsgType::GAME_OVER:
                 break;
@@ -274,4 +275,26 @@ bool Game::IsPlayerValid(Player *player, const char *format, ...)
     }
 
     return true;
+}
+
+void Game::GamePlay(Player *player, const uint8_t *data, const int &data_len)
+{
+    auto res = new uint8_t[6 + 5 + data_len]{};
+    res[0] = (int8_t)MsgType::ROOM_PLAY_DATA;
+    res[1] = 1;
+    *(uint32_t*)(res+2) = data_len + 5;
+    res[6] = 1;
+    *(uint32_t*)(res+7) = player->id_;
+    memcpy(res + 11, data, data_len);
+
+    LOG_INFO("fd:%d from %s PlayGame for roomid:%d", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
+
+    for (auto temp : *player->room->GetPlayerVector())
+    {
+        if (temp == nullptr)
+        {
+            continue;
+        }
+        send(temp->fd, res, data_len + 6 + 5, 0);
+    }
 }

@@ -23,7 +23,7 @@ class Player
 public:
     Player();
 
-    int id_ = -1;
+    int id_ = 0;
     int fd = -1;
     Gameroom *room;
 

@@ -12,7 +12,7 @@
 #include <cstring>
 #include <eventhandler.h>
 
-void LisenerCb(Net::EventHandler *handler, void* arg)
+void LisenerCb(int fd, char* ip_buffer, const int &port, void *args)
 {
     char buffer[1024]{};
     getcwd(buffer, sizeof(buffer));
@@ -30,8 +30,8 @@ void LisenerCb(Net::EventHandler *handler, void* arg)
         memset(outbuffer, 0, sizeof(outbuffer));
     }
 
-    Net::Http::SendHttpResponse(handler->fd_, out);
-    close(handler->fd_);
+    Net::Http::SendHttpResponse(fd, out);
+    close(fd);
 }
 int main(int argc, char* argv[])
 {
