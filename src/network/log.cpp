@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdarg>
-#include "log.h"
+#include "network/log.h"
 
 Net::Log Net::Log::log_;
 std::mutex Net::Log::mutex;

@@ -4,15 +4,10 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <eventhandler.h>
-#include <log.h>
+#include <network/eventhandler.h>
+#include <network/log.h>
 
-#include "callback.h"
-
-void Net::EchoCallback(EventHandler* handler, void *args)
-{
-    ZeroCopyCallback(handler->fd_, handler->fd_);
-}
+#include "network/callback.h"
 
 void Net::ZeroCopyCallback(int from_fd, int to_fd)
 {

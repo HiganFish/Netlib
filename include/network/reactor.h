@@ -35,14 +35,15 @@ public:
 
     Reactor();
 
-    OpBase* op_base_{};
-
     void AddEventHandler(EventHandler* event_handler);
 
     int ReactorDispatch();
 
     void SetLisenerFd(int fd);
 private:
+
+    OpBase* op_base_;
+
     // 本次循环完成后退出
     int reactor_break_later_;
 

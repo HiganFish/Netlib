@@ -6,7 +6,7 @@
 #define NETLIB_PLAYER_H
 
 #include <string>
-#include "protocol.h"
+#include "network/protocol.h"
 
 enum class PlayerStatus
 {

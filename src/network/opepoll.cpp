@@ -3,9 +3,9 @@
 //
 
 #include <sys/epoll.h>
-#include <log.h>
+#include <network/log.h>
 #include <fcntl.h>
-#include "opepoll.h"
+#include "network/opepoll.h"
 
 bool Net::OpEpoll::Add(int fd, int option, int event_type)
 {

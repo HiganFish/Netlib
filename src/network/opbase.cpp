@@ -2,7 +2,7 @@
 // Created by lsmg on 2/20/20.
 //
 
-#include "opbase.h"
+#include "network/opbase.h"
 
 bool Net::OpBase::Add(int fd, int option, int event_type)
 {
@@ -31,7 +31,5 @@ Net::OpBase::OpBase()
 }
 
 Net::OpBase::~OpBase()
-{
-
-}
+= default;
 

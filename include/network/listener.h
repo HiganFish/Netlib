@@ -15,15 +15,16 @@ namespace Net
 class Listener
 {
 public:
-    Listener(Reactor *reactor, void (*listener_cb)(int fd, char *ip_buffer, const int &port, void* args), const int &port);
+    Listener(Reactor *reactor, void (*listener_cb)(Reactor *reactor, int fd, const char *ip, const int &port, void* args),
+            const int &port);
 
-    static void (*cb)(int fd, char *ip_buffer, const int &port, void* args);
+    static void (*cb)(Reactor *reactor, int fd, const char *ip, const int &port, void* args);
 
     static void ListenerCallBack(EventHandler *handler, void *args);
 
-    int fd_;
-
 private:
+    int listenfd_;
+    static Reactor *reactor_;
     Listener(const Listener&);
     Listener& operator=(const Listener&);
 };

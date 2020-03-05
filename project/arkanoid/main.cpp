@@ -1,48 +1,45 @@
 //
 // Created by lsmg on 2/19/20.
 //
-#include <reactor.h>
-#include <eventhandler.h>
-#include <listener.h>
-#include <log.h>
-#include <unistd.h>
+#include <network/reactor.h>
+#include <network/eventhandler.h>
+#include <network/listener.h>
+#include <network/callback.h>
+#include <network/log.h>
 #include <sys/epoll.h>
-#include <util.h>
+#include <network/util.h>
 #include "game.h"
-
-int pipfd[2];
-
-Net::Reactor *preactor;
 
 Game *game;
 
+int fds[2]{0, 0};
+int player = 0;
+
 void ReadCallback(Net::EventHandler *handler, void *args)
 {
-    memset(handler->buffer, 0, sizeof(handler->buffer));
-    int len = recv(handler->fd_, handler->buffer, sizeof(handler->buffer), 0);
+    memset(handler->GetBuffer(), 0, Net::EventHandler::BUFFER_SIZE);
+    int len = recv(handler->GetFd(), handler->GetBuffer(), Net::EventHandler::BUFFER_SIZE, 0);
 
-    game->Distribute(handler->fd_, handler->ip_, handler->port_,
-                     len, (uint8_t*)handler->buffer);
+    game->Distribute(handler->GetFd(), handler->GetIp(), handler->GetFd(),len, (uint8_t*)handler->GetBuffer());
+
 }
 
-void LisenerCb(int fd, char* ip_buffer, const int &port, void *args)
+void LisenerCb(Net::Reactor *reactor, int fd, const char* ip, const int &port, void *args)
 {
-    auto *handler = new Net::EventHandler(preactor, fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET,
+    auto *handler = new Net::EventHandler(reactor, fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET,
                                           ReadCallback);
 
-    handler->SetIpAndPort(ip_buffer, port);
-    
-    preactor->AddEventHandler(handler);
+    handler->SetIp(ip);
+    handler->SetPort(port);
+
+    reactor->AddEventHandler(handler);
 }
 
 int main(int argc, char* argv[])
 {
-    pipe(pipfd);
-
     Net::Log::SetLogger(Net::OUT_CONSOLE, Net::LOG_LEVEL_INFO);
 
     Net::Reactor reactor{};
-    preactor = &reactor;
 
     int port = Net::GetPortFromArg(argc, argv);
 

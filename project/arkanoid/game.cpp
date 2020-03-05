@@ -2,9 +2,9 @@
 // Created by lsmg on 2/25/20.
 //
 
-#include <log.h>
+#include <network/log.h>
 #include <netinet/in.h>
-#include <protocol.h>
+#include <network/protocol.h>
 #include <cstdarg>
 #include "game.h"
 
@@ -78,9 +78,11 @@ Player *Game::InitPlayer(const int &fd, const char *ip, const int &port)
 
 void Game::EnterRoom(Player *player, const uint8_t *data, const int &data_len)
 {
-    uint32_t roomid = *(uint32_t*)data;
-    data+=4;
+    data++;
     uint32_t playerid = *(uint32_t*)data;
+    data+=4;
+    uint32_t roomid = *(uint32_t*)data;
+
 
     auto ret = room_map_->find(roomid);
     if (ret != room_map_->end())
@@ -279,13 +281,22 @@ bool Game::IsPlayerValid(Player *player, const char *format, ...)
 
 void Game::GamePlay(Player *player, const uint8_t *data, const int &data_len)
 {
-    auto res = new uint8_t[6 + 5 + data_len]{};
+    if (!IsPlayerValid(player, "fd:%d from %s GamePlay invalid", player->fd, player->GetPortAndIpCharArray()))
+    {
+        return;
+    }
+
+    auto res = new uint8_t[6 + data_len]{};
     res[0] = (int8_t)MsgType::ROOM_PLAY_DATA;
     res[1] = 1;
-    *(uint32_t*)(res+2) = data_len + 5;
+    *(uint32_t*)(res+2) = data_len;
+
     res[6] = 1;
-    *(uint32_t*)(res+7) = player->id_;
-    memcpy(res + 11, data, data_len);
+    data++;
+    *(uint32_t*)(res+7) = *(uint32_t*)data;
+    data += 4;
+
+    memcpy(res + 11, data, data_len - 5);
 
     LOG_INFO("fd:%d from %s PlayGame for roomid:%d", player->fd, player->GetPortAndIpCharArray(), player->room->GetRoomid());
 
@@ -295,6 +306,6 @@ void Game::GamePlay(Player *player, const uint8_t *data, const int &data_len)
         {
             continue;
         }
-        send(temp->fd, res, data_len + 6 + 5, 0);
+        send(temp->fd, res, data_len + 6, 0);
     }
 }

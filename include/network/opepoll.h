@@ -12,8 +12,6 @@
 namespace Net
 {
 
-#define EPOLL_EVENT_INIT_SIZE 32
-
 class OpEpoll : public OpBase
 {
 public:
@@ -28,7 +26,10 @@ public:
     void Dealloc() override;
 
 private:
-    Net::Reactor *reactor_;
+    const static int EPOLL_EVENT_INIT_SIZE = 32;
+
+    Reactor *reactor_;
+
     int epfd_;
 
     epoll_event *events_;

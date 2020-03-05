@@ -2,15 +2,15 @@
 // Created by lsmg on 2/20/20.
 //
 
-#include <opepoll.h>
+#include <network/opepoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <log.h>
+#include <network/log.h>
 
-#include "reactor.h"
-#include "opbase.h"
-#include "eventhandler.h"
+#include "network/reactor.h"
+#include "network/opbase.h"
+#include "network/eventhandler.h"
 
 Net::Reactor::Reactor()
 {
@@ -31,8 +31,8 @@ Net::Reactor::Reactor()
 
 void Net::Reactor::AddEventHandler(Net::EventHandler *event_handler)
 {
-    (*event_handler_array)[event_handler->fd_] = event_handler;
-    op_base_->Add(event_handler->fd_ , event_handler->option_, event_handler->event_type_);
+    (*event_handler_array)[event_handler->GetFd()] = event_handler;
+    op_base_->Add(event_handler->GetFd() , event_handler->GetOption(), event_handler->GetEventType());
 }
 
 int Net::Reactor::ReactorDispatch()

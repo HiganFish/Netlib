@@ -3,8 +3,7 @@
 //
 
 #include <cstring>
-#include <sys/socket.h>
-#include "protocol.h"
+#include "network/protocol.h"
 
 uint8_t* Net::ProtoOperate::Encode(Net::ProtoMsg *msg, uint32_t *len)
 {

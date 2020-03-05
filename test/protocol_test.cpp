@@ -1,8 +1,8 @@
 //
 // Created by lsmg on 2/25/20.
 //
-#include <protocol.h>
-#include <log.h>
+#include <network/protocol.h>
+#include <network/log.h>
 
 int main()
 {

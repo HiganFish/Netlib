@@ -10,9 +10,8 @@
 
 namespace Net
 {
+// 传入 main函数参数 可以获得 port 仅支持单参数port
 int GetPortFromArg(int &argc, char **argv);
-
-void ReplaceAll(std::string &str, const std::string &from, const std::string &to);
 }
 
 #endif //NETLIB_UTIL_H
