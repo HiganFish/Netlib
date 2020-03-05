@@ -5,7 +5,7 @@
 #include <cstring>
 #include "network/protocol.h"
 
-uint8_t* Net::ProtoOperate::Encode(Net::ProtoMsg *msg, uint32_t *len)
+uint8_t* Net::Protocol::Encode(Net::ProtoMsg *msg, uint32_t *len)
 {
     *len = msg->header.body_len + HEADER_SIZE;
 
@@ -27,7 +27,7 @@ uint8_t* Net::ProtoOperate::Encode(Net::ProtoMsg *msg, uint32_t *len)
     return data - HEADER_SIZE;
 }
 
-bool Net::ProtoOperate::Decode(uint8_t *data, uint32_t len)
+bool Net::Protocol::Decode(uint8_t *data, uint32_t len)
 {
     // 防止沾包 直接将受到的数据全部按顺序存储
     for (int i = 0; i < len; ++i)
@@ -66,7 +66,7 @@ bool Net::ProtoOperate::Decode(uint8_t *data, uint32_t len)
     return true;
 }
 
-bool Net::ProtoOperate::ParseHeader(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len)
+bool Net::Protocol::ParseHeader(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len)
 {
     if (*reserved_len < HEADER_SIZE)
     {
@@ -91,7 +91,7 @@ bool Net::ProtoOperate::ParseHeader(uint8_t **r_data, uint32_t *reserved_len, ui
     return true;
 }
 
-bool Net::ProtoOperate::ParseBody(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len)
+bool Net::Protocol::ParseBody(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len)
 {
     if (*reserved_len < current_msg->header.body_len)
     {
@@ -110,27 +110,27 @@ bool Net::ProtoOperate::ParseBody(uint8_t **r_data, uint32_t *reserved_len, uint
     return true;
 }
 
-Net::ProtoMsg *Net::ProtoOperate::Front()
+Net::ProtoMsg *Net::Protocol::Front()
 {
     return msg_queue.front();
 }
 
-void Net::ProtoOperate::Pop()
+void Net::Protocol::Pop()
 {
     msg_queue.pop();
 }
 
-bool Net::ProtoOperate::IsEmpty()
+bool Net::Protocol::IsEmpty()
 {
     return msg_queue.empty();
 }
 
-Net::ProtoOperate::ProtoOperate()
+Net::Protocol::Protocol()
 {
 
 }
 
-Net::ProtoOperate::~ProtoOperate()
+Net::Protocol::~Protocol()
 {
 
 }

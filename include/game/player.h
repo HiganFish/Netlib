@@ -6,8 +6,9 @@
 #define NETLIB_PLAYER_H
 
 #include <string>
-#include "network/protocol.h"
 
+namespace LGame
+{
 enum class PlayerStatus
 {
     HALL,
@@ -21,13 +22,7 @@ class Gameroom;
 class Player
 {
 public:
-    Player();
-
-    int id_ = 0;
-    int fd = -1;
-    Gameroom *room;
-
-    Player(int fd, const char *ip, const int &port);
+    Player(int fd, const char *ip, int port);
 
     bool ChangePlayerStatus(PlayerStatus status);
 
@@ -35,11 +30,22 @@ public:
 
     void SetStatus(PlayerStatus status);
 
-    char *GetPortAndIpCharArray();
-    // 对应的二进制协议解析
-    Net::ProtoOperate proto_operate;
+    void GetIpAndPort(const char *ip, const int *port);
+
+    int GetId() const;
+
+    void SetId(int id);
+
+    int GetFd() const;
+
+    void SetFd(int fd);
 
 private:
+    // 玩家个人id
+    int id_ = 0;
+    // 玩家连接的描述符
+    int fd_ = -1;
+
     const char *ip_;
     int port_;
     PlayerStatus status_ = PlayerStatus::HALL;
@@ -47,4 +53,5 @@ private:
     Player(const Player&);
     Player& operator=(const Player&);
 };
+}
 #endif //NETLIB_PLAYER_H

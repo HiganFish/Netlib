@@ -30,11 +30,11 @@ enum class ParseStatus
     PARSE_HEAD,
     PARSE_BODY
 };
-class ProtoOperate
+class Protocol
 {
 public:
-    ProtoOperate();
-    ~ProtoOperate();
+    Protocol();
+    ~Protocol();
 
     bool Decode(uint8_t *data, uint32_t len);
     uint8_t* Encode(ProtoMsg *msg, uint32_t *len);
@@ -58,8 +58,8 @@ private:
 
     bool ParseBody(uint8_t **r_data, uint32_t *reserved_len, uint32_t *parse_len);
 
-    ProtoOperate(const ProtoOperate&);
-    ProtoOperate& operator=(const ProtoOperate&);
+    Protocol(const Protocol&);
+    Protocol& operator=(const Protocol&);
 };
 
 }

@@ -8,12 +8,10 @@
 #include <network/log.h>
 #include <sys/epoll.h>
 #include <network/util.h>
-#include "game.h"
 
-Game *game;
+#include "samplegame.h"
 
-int fds[2]{0, 0};
-int player = 0;
+SimpleGame *game;
 
 void ReadCallback(Net::EventHandler *handler, void *args)
 {
@@ -45,7 +43,7 @@ int main(int argc, char* argv[])
 
     Net::Listener listener{&reactor, LisenerCb, port};
 
-    game = new Game();
+    game = new SimpleGame(2);
 
     reactor.ReactorDispatch();
 }

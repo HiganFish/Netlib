@@ -18,7 +18,7 @@ int main()
 
     msg.body = test;
 
-    Net::ProtoOperate operate;
+    Net::Protocol operate;
 
     uint32_t len = 0;
     uint8_t *serialization = operate.Encode(&msg, &len);

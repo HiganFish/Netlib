@@ -2,12 +2,11 @@
 // Created by lsmg on 2/25/20.
 //
 
-#include "player.h"
-
-#include "gameroom.h"
+#include "game/player.h"
+#include "network/log.h"
 #include <cstring>
 
-bool Player::ChangePlayerStatus(PlayerStatus status)
+bool LGame::Player::ChangePlayerStatus(PlayerStatus status)
 {
     switch (status)
     {
@@ -49,34 +48,45 @@ bool Player::ChangePlayerStatus(PlayerStatus status)
     }
 }
 
-PlayerStatus Player::GetPlayerStatus()
+LGame::PlayerStatus LGame::Player::GetPlayerStatus()
 {
     return status_;
 }
 
-void Player::SetStatus(PlayerStatus status)
+void LGame::Player::SetStatus(PlayerStatus status)
 {
     status_ = status;
 }
 
-Player::Player(int fd, const char *ip, const int &port):
-        fd(fd), ip_(ip), port_(port)
-{
-    room = nullptr;
-}
-
-char *Player::GetPortAndIpCharArray()
-{
-    char *buffer = new char[strlen(ip_) + 8]{};
-
-    strcpy(buffer, ip_);
-    buffer[strlen(ip_)] = ':';
-    sprintf(buffer + strlen(ip_) + 1, "%d", port_);
-
-    return buffer;
-}
-
-Player::Player()
+LGame::Player::Player(int fd, const char *ip, int port) :
+        fd_(fd), ip_(ip), port_(port)
 {
     status_ = PlayerStatus::HALL;
+    LOG_INFO("create new player fd: %d ip_: %s port: %d", fd, ip, port);
+}
+
+void LGame::Player::GetIpAndPort(const char *ip, const int *port)
+{
+    ip = ip_;
+    port = &port_;
+}
+
+int LGame::Player::GetId() const
+{
+    return id_;
+}
+
+void LGame::Player::SetId(int id)
+{
+    id_ = id;
+}
+
+int LGame::Player::GetFd() const
+{
+    return fd_;
+}
+
+void LGame::Player::SetFd(int fd)
+{
+    Player::fd_ = fd;
 }

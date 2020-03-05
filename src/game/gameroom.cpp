@@ -2,16 +2,19 @@
 // Created by lsmg on 2/25/20.
 //
 
-#include "gameroom.h"
+#include "game/gameroom.h"
 
-Gameroom::Gameroom(int roomid)
+int LGame::Gameroom::MAX_PLAYERS;
+
+LGame::Gameroom::Gameroom(int roomid)
 {
     roomid_ = roomid;
+    player_num_ = 0;
     player_vector_ = new std::vector<Player*>;
 
 }
 
-bool Gameroom::EnterRoom(Player *player)
+bool LGame::Gameroom::EnterRoom(Player *player)
 {
     if (player_num_ >= MAX_PLAYERS)
     {
@@ -23,7 +26,7 @@ bool Gameroom::EnterRoom(Player *player)
     }
     for(Player *player_temp : *player_vector_)
     {
-        if (player_temp->fd == player->fd)
+        if (player_temp->GetId() == player->GetId())
         {
             return false;
         }
@@ -33,14 +36,14 @@ bool Gameroom::EnterRoom(Player *player)
     return true;
 }
 
-bool Gameroom::ExitRoom(Player *player)
+bool LGame::Gameroom::ExitRoom(Player *player)
 {
     if (player->ChangePlayerStatus(PlayerStatus::HALL))
     {
         int i = 0;
         for(auto player_temp : *player_vector_)
         {
-            if (player_temp->fd == player->fd)
+            if (player_temp->GetFd() == player->GetFd())
             {
                 player_num_--;
                 delete player_temp;
@@ -53,7 +56,7 @@ bool Gameroom::ExitRoom(Player *player)
     return false;
 }
 
-bool Gameroom::CanStartGame()
+bool LGame::Gameroom::CanStartGame()
 {
     if (player_num_ != MAX_PLAYERS)
     {
@@ -70,17 +73,22 @@ bool Gameroom::CanStartGame()
 }
 
 
-int Gameroom::GetRoomid()
+int LGame::Gameroom::GetRoomid()
 {
     return roomid_;
 }
 
-int Gameroom::GetPlayerNum()
+int LGame::Gameroom::GetPlayerNum()
 {
     return player_num_;
 }
 
-std::vector<Player *> *Gameroom::GetPlayerVector() const
+std::vector<LGame::Player *> *LGame::Gameroom::GetPlayerVector() const
 {
     return player_vector_;
+}
+
+void LGame::Gameroom::Init(int max_players)
+{
+    MAX_PLAYERS = max_players;
 }
