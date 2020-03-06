@@ -7,13 +7,7 @@
 #include <cstdarg>
 #include "network/log.h"
 
-Net::Log Net::Log::log_;
-std::mutex Net::Log::mutex;
-std::string Net::Log::stringbuf;
-int Net::Log::fd = -1;
-
-Net::LogLevel Net::Log::loglevel_ = LOG_LEVEL_NONE;
-Net::LogPlace Net::Log::logplace_ = OUT_NONE;
+Net::Log* Net::Log::log_= new  Net::Log();
 
 Net::Log::Log()
 {
@@ -147,13 +141,13 @@ void Net::Log::OutputLog(LogLevel level)
     }
 }
 
-Net::LogLevel Net::Log::GetLogLevel()
+Net::Log::LogLevel Net::Log::GetLogLevel()
 {
     return loglevel_;
 }
 
 
-Net::LogPlace Net::Log::GetLogPlace()
+Net::Log::LogPlace Net::Log::GetLogPlace()
 {
     return logplace_;
 }
@@ -166,5 +160,10 @@ int Net::Log::PrintfToBuffer(char *buffer, int size, const char *format, ...)
     int ret = vsnprintf(buffer, 100, format, ap);
     va_end(ap);
     return ret;
+}
+
+Net::Log *Net::Log::GetInstance()
+{
+    return log_;
 }
 

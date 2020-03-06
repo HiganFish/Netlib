@@ -2,28 +2,33 @@
 // Created by lsmg on 2/25/20.
 //
 
-#include <network/log.h>
 #include <netinet/in.h>
 #include <network/protocol.h>
-#include <cstdarg>
 #include <game/game.h>
-
+#include <network/log.h>
 #include "samplegame.h"
 
 
 void SimpleGame::Distribute(const int &fd, const char *ip, const int &port, const int &data_len, uint8_t *data)
 {
-    LGame::PlayerInfo *playerinfo = InitPlayerInfo(fd, ip, port);
-
-    if (!playerinfo->proto.Decode(data, data_len))
+    LOG_DEBUG("-------------------------------------------------------");
+    LOG_DEBUG("[fd: %d] parse start", fd);
+    if (!protos[fd].Decode(data, data_len))
     {
         return;
     }
+    LOG_DEBUG("[fd: %d] parse over", fd);
 
-    while(!playerinfo->proto.IsEmpty())
+    Net::ProtoMsg *msg = protos[fd].Front();
+    int id = *(uint32_t*)(msg->body+1);
+    LGame::PlayerInfo *playerinfo = InitPlayerInfo(id, fd, ip, port);
+
+    LOG_INFO("[id: %d]recv a new msg from %s:%d", id, ip, port);
+
+    while(!protos[fd].IsEmpty())
     {
-        Net::ProtoMsg *msg = playerinfo->proto.Front();
-        playerinfo->proto.Pop();
+        msg = protos[fd].Front();
+        protos[fd].Pop();
 
         if (msg->header.msg_version != (uint8_t)LGame::MsgVersion::VERSION1)
         {
@@ -37,42 +42,59 @@ void SimpleGame::Distribute(const int &fd, const char *ip, const int &port, cons
             }
         }
 
-        playerinfo->player->SetId(*(uint32_t*)(msg->body + 1));
-
         switch (static_cast<LGame::MsgType>(msg->header.msg_type))
         {
             case LGame::MsgType::ROOM_ENTER:
+            {
+                GameDebug(playerinfo, "ROOM_ENTER");
                 EnterRoom(playerinfo, msg->body, msg->header.body_len);
                 break;
+            }
             case LGame::MsgType::ROOM_EXIT:
+            {
+                GameDebug(playerinfo, "ROOM_EXIT");
                 ExitRoom(playerinfo, msg->body, msg->header.body_len);
                 break;
+            }
             case LGame::MsgType::PLAYER_READY:
+            {
+                GameDebug(playerinfo, "PLAYER_READY");
                 Ready(playerinfo, msg->body, msg->header.body_len);
                 break;
+            }
             case LGame::MsgType::PLAYER_CANCEL_READY:
+            {
+                GameDebug(playerinfo, "PLAYER_CANCEL_READY");
                 CancelReady(playerinfo, msg->body, msg->header.body_len);
                 break;
+            }
             case LGame::MsgType::GAME_START:
+            {
+                GameDebug(playerinfo, "GAME_START");
                 GameStart(playerinfo, msg->body, msg->header.body_len);
                 break;
+            }
             case LGame::MsgType::ROOM_PLAY_DATA:
+            {
+                GameDebug(playerinfo, "ROOM_PLAY_DATA");
                 GamePlay(playerinfo, msg->body, msg->header.body_len);
                 break;
+            }
             case LGame::MsgType::GAME_OVER:
                 break;
             default:
                 break;
         }
     }
+    LOG_DEBUG("-------------------------------------------------------");
 }
 
-LGame::PlayerInfo * SimpleGame::InitPlayerInfo(int fd, const char *ip, int port)
+LGame::PlayerInfo * SimpleGame::InitPlayerInfo(int id, int fd, const char *ip, int port)
 {
-    auto playerinfo = GetPlayerInfoByFd(fd);
+    auto playerinfo = GetPlayerInfoById(id);
     if (playerinfo == nullptr)
     {
-        playerinfo = AddPlayerInfo(fd, ip, port);
+        playerinfo = AddPlayerInfo(id, fd, ip, port);
     }
     return playerinfo;
 }
@@ -91,11 +113,13 @@ void SimpleGame::EnterRoom(LGame::PlayerInfo *player_info, const uint8_t *data, 
         if (room->EnterRoom(player_info->player))
         {
             player_info->room = room;
+
+            GameInfo(player_info, "enterroom", true);
             SampleRespone(player_info, LGame::MsgType::ROOM_ENTER, true, true);
         }
         else
         {
-            // 进入失败
+            GameInfo(player_info, "enterroom", false);
             SampleRespone(player_info, LGame::MsgType::ROOM_ENTER, false, false);
         }
         return;
@@ -107,6 +131,7 @@ void SimpleGame::EnterRoom(LGame::PlayerInfo *player_info, const uint8_t *data, 
     if (room->EnterRoom(player_info->player))
     {
         player_info->room = room;
+        GameInfo(player_info, "enter and create room", true);
         SampleRespone(player_info, LGame::MsgType::ROOM_ENTER, true, true);
         return;
     }
@@ -121,13 +146,13 @@ void SimpleGame::ExitRoom(LGame::PlayerInfo *player_info, const uint8_t *data, c
 {
     if (player_info->room->ExitRoom(player_info->player))
     {
-        // 退出成功
+        GameInfo(player_info, "exit room", true);
         SampleRespone(player_info, LGame::MsgType::ROOM_EXIT, true, true);
         CheckRoomPlayerNum(player_info);
     }
     else
     {
-        // 退出失败
+        GameInfo(player_info, "exit room", false);
         SampleRespone(player_info, LGame::MsgType::ROOM_EXIT, false, false);
     }
 }
@@ -136,6 +161,7 @@ void SimpleGame::CheckRoomPlayerNum(LGame::PlayerInfo *player_info)
 {
     if (player_info->room->GetPlayerNum() == 0)
     {
+        GameInfo(player_info, "delete room", true);
         DeleteRoom(player_info);
     }
 }
@@ -144,12 +170,12 @@ void SimpleGame::Ready(LGame::PlayerInfo *player_info, const uint8_t *data, cons
 {
     if (player_info->player->ChangePlayerStatus(LGame::PlayerStatus::ROOM_READY))
     {
-        // 准备成功
+        GameInfo(player_info, "ready", true);
         SampleRespone(player_info, LGame::MsgType::PLAYER_READY, true, true);
     }
     else
     {
-        // 准备失败
+        GameInfo(player_info, "ready", false);
         SampleRespone(player_info, LGame::MsgType::PLAYER_READY, false, false);
     }
 }
@@ -158,27 +184,27 @@ void SimpleGame::CancelReady(LGame::PlayerInfo *player_info, const uint8_t *data
 {
     if (player_info->player->ChangePlayerStatus(LGame::PlayerStatus::ROOM_NOT_READY))
     {
-        // 取消准备成功
+        GameInfo(player_info, "cancel ready", true);
         SampleRespone(player_info, LGame::MsgType::PLAYER_CANCEL_READY, true, true);
     }
     else
     {
-        // 取消准备失败
+        GameInfo(player_info, "cancel ready", false);
         SampleRespone(player_info, LGame::MsgType::PLAYER_CANCEL_READY, false, false);
     }
 }
 
-void SimpleGame::GameStart(LGame::PlayerInfo *playerInfo, const uint8_t *data, const int &data_len)
+void SimpleGame::GameStart(LGame::PlayerInfo *player_info, const uint8_t *data, const int &data_len)
 {
-    if (playerInfo->room->CanStartGame())
+    if (player_info->room->CanStartGame())
     {
-        // 可以开始游戏
-        SampleRespone(playerInfo, LGame::MsgType::GAME_START, true, true);
+        GameInfo(player_info, "game start", true);
+        SampleRespone(player_info, LGame::MsgType::GAME_START, true, true);
     }
     else
     {
-        // 游戏人数不足
-        SampleRespone(playerInfo, LGame::MsgType::GAME_START, false, false);
+        GameInfo(player_info, "game start", false);
+        SampleRespone(player_info, LGame::MsgType::GAME_START, false, false);
     }
 }
 
@@ -190,7 +216,7 @@ void SimpleGame::GamePlay(LGame::PlayerInfo *playerInfo, const uint8_t *data, co
         {
             continue;
         }
-        auto playerinfo_temp = GetPlayerInfoByFd(player->GetId());
+        auto playerinfo_temp = GetPlayerInfoById(player->GetId());
         if (playerinfo_temp != nullptr)
         {
             Response(playerinfo_temp, LGame::MsgType::ROOM_PLAY_DATA, LGame::MsgVersion::VERSION1,
@@ -201,6 +227,8 @@ void SimpleGame::GamePlay(LGame::PlayerInfo *playerInfo, const uint8_t *data, co
 
 void SimpleGame::SampleRespone(LGame::PlayerInfo *playerinfo, LGame::MsgType type, bool result, bool broadcast)
 {
+    GameDebug(playerinfo, "Start Response");
+
     if (broadcast)
     {
         const int BUFFER_SIZE = 5;
@@ -219,7 +247,7 @@ void SimpleGame::SampleRespone(LGame::PlayerInfo *playerinfo, LGame::MsgType typ
             {
                 continue;
             }
-            LGame::PlayerInfo* info = GetPlayerInfoByFd(player_temp->GetFd());
+            LGame::PlayerInfo* info = GetPlayerInfoById(player_temp->GetFd());
             if (info != nullptr)
             {
                 Response(info, type, LGame::MsgVersion::VERSION1, res_data, BUFFER_SIZE);
@@ -232,6 +260,7 @@ void SimpleGame::SampleRespone(LGame::PlayerInfo *playerinfo, LGame::MsgType typ
         uint8_t res_data = result ? 1:0;
         Response(playerinfo, type, LGame::MsgVersion::VERSION1, &res_data, 1);
     }
+    GameDebug(playerinfo, "Response over");
 }
 
 void
@@ -243,12 +272,12 @@ SimpleGame::Response(LGame::PlayerInfo *playerinfo, LGame::MsgType msg_type, LGa
     msg.header.body_len = length;
     msg.body = body;
 
-    uint8_t *data = playerinfo->proto.Encode(&msg, &length);
+    uint8_t *data = protos[playerinfo->player->GetFd()].Encode(&msg, &length);
 
     send(playerinfo->player->GetFd(), (char*)data, length, 0);
 }
 
 SimpleGame::SimpleGame(int RoomMaxPlayer) : Game(RoomMaxPlayer)
 {
-
+    protos = new Net::Protocol[10000]();
 }

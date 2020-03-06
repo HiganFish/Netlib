@@ -35,7 +35,7 @@ void LisenerCb(Net::Reactor *reactor, int fd, const char* ip, const int &port, v
 
 int main(int argc, char* argv[])
 {
-    Net::Log::SetLogger(Net::OUT_CONSOLE, Net::LOG_LEVEL_INFO);
+    Net::Log::GetInstance()->SetLogger(Net::Log::OUT_CONSOLE, Net::Log::LOG_LEVEL_DEBUG);
 
     Net::Reactor reactor{};
 

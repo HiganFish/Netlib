@@ -18,6 +18,6 @@ int Net::GetPortFromArg(int &argc, char **argv)
         LOG_ERROR("invaild parameters");
         exit(0);
     }
-    LOG_DEBUG("the port is %d", port);
+    LOG_INFO("the port is %d", port);
     return port;
 }

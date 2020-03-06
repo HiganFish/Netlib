@@ -21,7 +21,7 @@ void LGame::Game::Distribute(const int &fd, const char *ip, const int &port, con
 
 }
 
-LGame::PlayerInfo * LGame::Game::InitPlayerInfo(int fd, const char *ip, int port)
+LGame::PlayerInfo * LGame::Game::InitPlayerInfo(int id, int fd, const char *ip, int port)
 {
     return nullptr;
 }
@@ -76,9 +76,9 @@ void LGame::Game::Response(PlayerInfo *player_info, MsgType msg_type, MsgVersion
 
 }
 
-LGame::PlayerInfo *LGame::Game::GetPlayerInfoByFd(int fd)
+LGame::PlayerInfo *LGame::Game::GetPlayerInfoById(int id)
 {
-    auto playerinfo = player_info_map_->find(fd);
+    auto playerinfo = player_info_map_->find(id);
     if (playerinfo == player_info_map_->end())
     {
         return nullptr;
@@ -94,12 +94,14 @@ void LGame::Game::DeleteRoom(LGame::PlayerInfo *player_info)
     player_info->room = nullptr;
 }
 
-LGame::PlayerInfo * LGame::Game::AddPlayerInfo(int fd, const char *ip, int port)
+LGame::PlayerInfo * LGame::Game::AddPlayerInfo(int id, int fd, const char *ip, int port)
 {
     auto info = new PlayerInfo;
-    info->player = new Player(fd, ip, port);
+    info->player = new Player(id, fd, ip, port);
     info->room = nullptr;
-    player_info_map_->insert(std::pair<int, LGame::PlayerInfo*>(fd, info));
+
+    player_info_map_->insert(std::pair<int, LGame::PlayerInfo*>(id, info));
+
     return info;
 }
 

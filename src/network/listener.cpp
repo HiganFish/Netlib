@@ -54,7 +54,7 @@ void Net::Listener::ListenerCallBack(EventHandler *handler, void *args)
         char *ip = new char[64]{};
         inet_ntop(AF_INET, &client_address.sin_addr, ip, 64);
         int port = ntohs(client_address.sin_port);
-        LOG_INFO("accept a new connection from %s:%d", ip, port);
+        LOG_DEBUG("accept a new connection from %s:%d", ip, port);
 
         cb(reactor_, newfd, ip, port, nullptr);
     }

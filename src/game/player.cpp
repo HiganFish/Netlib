@@ -58,11 +58,11 @@ void LGame::Player::SetStatus(PlayerStatus status)
     status_ = status;
 }
 
-LGame::Player::Player(int fd, const char *ip, int port) :
-        fd_(fd), ip_(ip), port_(port)
+LGame::Player::Player(int id, int fd, const char *ip, int port) :
+        id_(id), fd_(fd), ip_(ip), port_(port)
 {
     status_ = PlayerStatus::HALL;
-    LOG_INFO("create new player fd: %d ip_: %s port: %d", fd, ip, port);
+    LOG_INFO("[id: %d][fd: %d]create new player ip: %s port: %d", id, fd, ip, port);
 }
 
 void LGame::Player::GetIpAndPort(const char *ip, const int *port)

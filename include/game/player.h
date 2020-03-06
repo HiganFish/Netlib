@@ -22,7 +22,7 @@ class Gameroom;
 class Player
 {
 public:
-    Player(int fd, const char *ip, int port);
+    Player(int id, int fd, const char *ip, int port);
 
     bool ChangePlayerStatus(PlayerStatus status);
 

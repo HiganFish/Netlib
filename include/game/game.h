@@ -9,7 +9,6 @@
 
 #include "player.h"
 #include "gameroom.h"
-#include "network/protocol.h"
 
 namespace LGame
 {
@@ -35,7 +34,6 @@ struct PlayerInfo
 {
     Player *player;
     Gameroom* room;
-    Net::Protocol proto;
 };
 
 class Game
@@ -55,10 +53,10 @@ public:
     virtual void Distribute(const int &fd, const char *ip, const int &port, const int &data_len, uint8_t *data);
 
     /**
-     * @param fd 玩家个人id
+     * @param id 玩家个人id
      * @return id对应的playerinfo结构体
      */
-    PlayerInfo* GetPlayerInfoByFd(int fd);
+    PlayerInfo* GetPlayerInfoById(int id);
 
     /**
      * 从room_map_中删除 对应的房间
@@ -74,7 +72,7 @@ public:
      * @param port
      * @return id对应的结构体
      */
-    LGame::PlayerInfo *AddPlayerInfo(int fd, const char *ip, int port);
+    LGame::PlayerInfo *AddPlayerInfo(int id, int fd, const char *ip, int port);
 
 
     Gameroom* GetGameroom(int roomid);
@@ -92,7 +90,7 @@ private:
     std::map<int, PlayerInfo*> *player_info_map_;
 
     // 如果存在PlayerInfo则返回， 如果不存在则创建并返回
-    virtual LGame::PlayerInfo *InitPlayerInfo(int fd, const char *ip, int port);
+    virtual LGame::PlayerInfo *InitPlayerInfo(int id, int fd, const char *ip, int port);
 
     // 进入房间 并返回数据
     virtual void EnterRoom(PlayerInfo *player_info, const uint8_t *data, const int &data_len);
