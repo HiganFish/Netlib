@@ -78,3 +78,13 @@ void Net::EventHandler::SetIp(const char *ip)
 {
     ip_ = ip;
 }
+
+Net::io_evnet_type Net::EventHandler::GetTickType() const
+{
+    return tick_type_;
+}
+
+void Net::EventHandler::SetTickType(Net::io_evnet_type tickType)
+{
+    tick_type_ = tickType;
+}

@@ -47,6 +47,10 @@ public:
     int GetPort() const;
 
     void SetPort(int port);
+
+    io_evnet_type GetTickType() const;
+
+    void SetTickType(io_evnet_type tickType);
 private:
     Reactor *reactor_;
 
@@ -56,6 +60,8 @@ private:
 
     // 注册的事件
     int event_type_;
+
+    io_evnet_type tick_type_;
 
     // 通用缓存
     char *buffer;

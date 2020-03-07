@@ -15,10 +15,28 @@ SimpleGame *game;
 
 void ReadCallback(Net::EventHandler *handler, void *args)
 {
-    memset(handler->GetBuffer(), 0, Net::EventHandler::BUFFER_SIZE);
-    int len = recv(handler->GetFd(), handler->GetBuffer(), Net::EventHandler::BUFFER_SIZE, 0);
 
-    game->Distribute(handler->GetFd(), handler->GetIp(), handler->GetFd(),len, (uint8_t*)handler->GetBuffer());
+    switch (handler->GetTickType())
+    {
+        case Net::IO_READ:
+        {
+            memset(handler->GetBuffer(), 0, Net::EventHandler::BUFFER_SIZE);
+            int len = recv(handler->GetFd(), handler->GetBuffer(), Net::EventHandler::BUFFER_SIZE, 0);
+            if (len == 0)
+            {
+                return;
+            }
+            game->Distribute(handler->GetFd(), handler->GetIp(), handler->GetFd(),len, (uint8_t*)handler->GetBuffer());
+            break;
+        }
+        case Net::IO_WRITE:
+            break;
+        case Net::IO_CLOSE:
+        {
+            // TODO delete resource
+        }
+    }
+    fflush(stdout);
 
 }
 
@@ -35,7 +53,7 @@ void LisenerCb(Net::Reactor *reactor, int fd, const char* ip, const int &port, v
 
 int main(int argc, char* argv[])
 {
-    Net::Log::GetInstance()->SetLogger(Net::Log::OUT_CONSOLE, Net::Log::LOG_LEVEL_DEBUG);
+    Net::Log::GetInstance()->SetLogger(Net::Log::OUT_CONSOLE, Net::Log::LOG_LEVEL_INFO);
 
     Net::Reactor reactor{};
 

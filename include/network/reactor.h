@@ -13,7 +13,7 @@ namespace Net
 {
 
 // 可读 可写 新连接
-enum io_evnet_type
+enum io_evnet_type : uint8_t
 {
     IO_READ = 1,
     IO_WRITE = 2,

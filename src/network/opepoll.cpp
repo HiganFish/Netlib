@@ -28,27 +28,28 @@ bool Net::OpEpoll::Del(int fd, int option, int event_type)
 bool Net::OpEpoll::Dispatch(int time)
 {
     int ret = epoll_wait(epfd_, events_, EPOLL_EVENT_INIT_SIZE, time);
-    ERROR_IF(ret == -1, "epoll_wait return %d", ret)
+    if ((ret == 0) && (errno != EINTR))
+    {
+        LOG_WARN("epoll_wait failure");
+    }
 
     for (int i = 0; i < ret; ++i)
     {
         int fd = events_[i].data.fd;
         int what = events_[i].events;
-         switch (what)
-         {
-             case EPOLLIN:
-                 reactor_->io_queue->push({fd, IO_READ});
-                 break;
-             case EPOLLOUT:
-                 reactor_->io_queue->push({fd, IO_WRITE});
-                 break;
-             case EPOLLRDHUP:
-                 reactor_->io_queue->push({fd, IO_CLOSE});
-                 break;
-             default:
-                 LOG_WARN("unknow event type %d", what);
-                 break;
-         }
+
+        if (what & EPOLLIN)
+        {
+            reactor_->io_queue->push({fd, IO_READ});
+        }
+        if (what & EPOLLOUT)
+        {
+            reactor_->io_queue->push({fd, IO_WRITE});
+        }
+        if (what & EPOLLRDHUP)
+        {
+            reactor_->io_queue->push({fd, IO_CLOSE});
+        }
     }
 }
 

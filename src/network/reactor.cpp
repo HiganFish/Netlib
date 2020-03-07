@@ -101,6 +101,7 @@ int Net::Reactor::EventProcess()
                 {
                     LOG_DEBUG("a new read event fd:%d from %s:%d", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 }
+                handler->SetTickType(IO_READ);
                 handler->event_callback_(handler, nullptr);
                 break;
             case IO_WRITE:
@@ -108,6 +109,8 @@ int Net::Reactor::EventProcess()
                 break;
             case IO_CLOSE:
                 LOG_DEBUG("fd:%d from %s:%p closed", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+                handler->SetTickType(IO_CLOSE);
+                handler->event_callback_(handler, nullptr);
                 break;
         }
     }
