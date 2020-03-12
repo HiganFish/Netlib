@@ -9,22 +9,22 @@ uint8_t* Net::Protocol::Encode(Net::ProtoMsg *msg, uint32_t *len)
 {
     *len = msg->header.body_len + HEADER_SIZE;
 
-    auto *data = new uint8_t[*len];
+    auto data = new uint8_t[*len];
+    auto temp = data;
     memset(data, 0, *len);
 
-    *data = msg->header.msg_type;
-    data++;
+    *temp = msg->header.msg_type;
+    temp++;
 
-    *data = msg->header.msg_version;
-    data++;
+    *temp = msg->header.msg_version;
+    temp++;
 
-    *(uint32_t*)data = msg->header.body_len;
-    data += 4;
+    *(uint32_t*)temp = msg->header.body_len;
+    temp += 4;
 
-    memcpy(data, msg->body, msg->header.body_len);
+    memcpy(temp, msg->body, msg->header.body_len);
 
-    // 回退增加的部分
-    return data - HEADER_SIZE;
+    return data;
 }
 
 bool Net::Protocol::Decode(uint8_t *data, uint32_t len)
@@ -41,27 +41,28 @@ bool Net::Protocol::Decode(uint8_t *data, uint32_t len)
 
     while (r_len > 0)
     {
-        switch (parse_status)
+        if (parse_status == ParseStatus::PARSE_INIT)
         {
-            case ParseStatus::PARSE_INIT:
-                current_msg = new ProtoMsg();
-                parse_status = ParseStatus::PARSE_HEAD;
-
-            case ParseStatus::PARSE_HEAD:
-                if (!ParseHeader(&r_data, &r_len, &parse_len))
-                {
-                    return false;
-                }
-            case ParseStatus::PARSE_BODY:
-                if (!ParseBody(&r_data, &r_len, &parse_len))
-                {
-                    return false;
-                }
-                msg_queue.push(current_msg);
-                current_msg = nullptr;
+            current_msg = new ProtoMsg();
+            parse_status = ParseStatus::PARSE_HEAD;
+        }
+        if (parse_status == ParseStatus::PARSE_HEAD)
+        {
+            if (!ParseHeader(&r_data, &r_len, &parse_len))
+            {
+                break;
+            }
+        }
+        if (parse_status == ParseStatus::PARSE_BODY)
+        {
+            if (!ParseBody(&r_data, &r_len, &parse_len))
+            {
+                break;
+            }
+            msg_queue.push(current_msg);
+            current_msg = nullptr;
         }
     }
-
     reserved_data.erase(reserved_data.begin(), reserved_data.begin() + parse_len);
     return true;
 }
