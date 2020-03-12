@@ -86,7 +86,7 @@ private:
     // roomid to gameroom
     std::map<int, Gameroom*> *room_map_;
 
-    // player fd to player info
+    // player id to player info
     std::map<int, PlayerInfo*> *player_info_map_;
 
     // 如果存在PlayerInfo则返回， 如果不存在则创建并返回

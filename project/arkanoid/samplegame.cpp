@@ -23,7 +23,7 @@ void SimpleGame::Distribute(const int &fd, const char *ip, const int &port, cons
     int id = *(uint32_t*)(msg->body+1);
     LGame::PlayerInfo *playerinfo = InitPlayerInfo(id, fd, ip, port);
 
-    LOG_INFO("[id: %d]recv a new msg from %s:%d", id, ip, port);
+    LOG_DEBUG("[id: %d]recv a new msg from %s:%d", id, ip, port);
 
     while(!protos[fd].IsEmpty())
     {
@@ -247,7 +247,7 @@ void SimpleGame::SampleRespone(LGame::PlayerInfo *playerinfo, LGame::MsgType typ
             {
                 continue;
             }
-            LGame::PlayerInfo* info = GetPlayerInfoById(player_temp->GetFd());
+            LGame::PlayerInfo* info = GetPlayerInfoById(player_temp->GetId());
             if (info != nullptr)
             {
                 Response(info, type, LGame::MsgVersion::VERSION1, res_data, BUFFER_SIZE);

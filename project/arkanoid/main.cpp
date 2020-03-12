@@ -22,7 +22,7 @@ void ReadCallback(Net::EventHandler *handler, void *args)
         {
             memset(handler->GetBuffer(), 0, Net::EventHandler::BUFFER_SIZE);
             int len = recv(handler->GetFd(), handler->GetBuffer(), Net::EventHandler::BUFFER_SIZE, 0);
-            if (len == 0)
+            if (len <= 0)
             {
                 return;
             }
