@@ -10,6 +10,7 @@ set(NETWORK_HEADERS
         ${NETWORK_DIR}/log.h
         ${NETWORK_DIR}/callback.h
         ${NETWORK_DIR}/protocol.h
+        ${NETWORK_DIR}/opsignal.h
 )
 
 set(NETWORK_SOURSES
@@ -22,7 +23,8 @@ set(NETWORK_SOURSES
         network/log.cpp
         network/callback.cpp
         network/protocol.cpp
-)
+        network/opsignal.cpp
+        )
 
 add_library(net_lib ${NETWORK_HEADERS} ${NETWORK_SOURSES})
 

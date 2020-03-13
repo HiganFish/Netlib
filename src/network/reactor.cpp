@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <network/log.h>
+#include <csignal>
+#include <network/opsignal.h>
 
 #include "network/reactor.h"
 #include "network/opbase.h"
@@ -20,19 +22,30 @@ Net::Reactor::Reactor()
 
     running_loop_ = false;
 
-    op_base_ = new OpEpoll(this);
-
     io_queue = new std::queue<io_event>;
 
     event_handler_array = new std::array<EventHandler*, 5000>;
+    signal_event_array = new std::array<EventHandler*, 100>;
 
+    op_base_ = new OpEpoll(this);
+    sig_base_ = new OpSignal(this);
     lisenfd_ = -1;
 }
 
 void Net::Reactor::AddEventHandler(Net::EventHandler *event_handler)
 {
-    (*event_handler_array)[event_handler->GetFd()] = event_handler;
-    op_base_->Add(event_handler->GetFd() , event_handler->GetOption(), event_handler->GetEventType());
+    EventHandler::EventType event_type = event_handler->GetEventType();
+    if (event_type == EventHandler::EventType::EV_READ)
+    {
+        (*event_handler_array)[event_handler->GetFd()] = event_handler;
+        op_base_->Add(event_handler->GetFd(), EPOLL_CTL_ADD, EPOLLIN | EPOLLRDHUP | EPOLLET);
+    }
+
+    if (event_type == EventHandler::EventType::EV_SIGNAL)
+    {
+        (*signal_event_array)[event_handler->GetFd()] = event_handler;
+        sig_base_->Add(event_handler->GetFd(), 0, 0);
+    }
 }
 
 int Net::Reactor::ReactorDispatch()
@@ -99,13 +112,13 @@ int Net::Reactor::EventProcess()
             case IO_READ:
                 if (fd != lisenfd_)
                 {
-                    LOG_DEBUG("a new read event fd:%d from %s:%d", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+                    LOG_DEBUG("a new read event_ fd:%d from %s:%d", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 }
                 handler->SetTickType(IO_READ);
                 handler->event_callback_(handler, nullptr);
                 break;
             case IO_WRITE:
-                LOG_DEBUG("a new write event fd:%d from %s:%p", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+                LOG_DEBUG("a new write event_ fd:%d from %s:%p", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
                 break;
             case IO_CLOSE:
                 LOG_DEBUG("fd:%d from %s:%p closed", fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
@@ -120,5 +133,10 @@ int Net::Reactor::EventProcess()
 void Net::Reactor::SetLisenerFd(int fd)
 {
     lisenfd_ = fd;
+}
+
+Net::EventHandler *Net::Reactor::GetHandlerBySignal(int signal)
+{
+    return (*signal_event_array)[signal];
 }
 
