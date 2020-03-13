@@ -8,7 +8,6 @@
 #include <map>
 
 namespace Net {
-class EventHandler;
 
 class OpBase
 {

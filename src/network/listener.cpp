@@ -33,7 +33,7 @@ Net::Listener::Listener(Reactor *reactor, void (*listener_cb)(Reactor *reactor, 
 
     listen(listenfd_, 5);
 
-    auto event_handler = new EventHandler(reactor, listenfd_, EPOLL_CTL_ADD, EPOLLIN, ListenerCallBack);
+    auto event_handler = new EventHandler(reactor, listenfd_, Net::EventHandler::EventType::EV_READ, ListenerCallBack);
 
     // 注册事件控制器
     reactor->AddEventHandler(event_handler);

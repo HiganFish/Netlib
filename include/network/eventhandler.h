@@ -14,12 +14,25 @@ namespace Net
 class EventHandler
 {
 public:
-    static const int BUFFER_SIZE = 1024;
-    static const int IP_SIZE = 16;
+
+    enum class EventType : short
+    {
+        EV_READ = 0x01,
+        EV_WRITE = 0x02,
+        EV_SIGNAL = 0x04,
+        EV_ET = 0x08
+    };
 
     void (*event_callback_)(EventHandler* handler, void* args);
 
-    EventHandler(Reactor *reactor, int fd, int option, int event_type,
+    /**
+     * 生成新的EventHandler
+     * @param reactor 指定从属的Reactor
+     * @param fd  IO事件对应文件描述符 信号事件对应信号值
+     * @param event_type 事件类型使用EventType传参
+     * @param event_callback 回调函数
+     */
+    EventHandler(Reactor *reactor, int fd, EventType event_type,
                  void (*event_callback)(EventHandler *handler, void *args));
 
     Reactor *GetReactor() const;
@@ -30,13 +43,9 @@ public:
 
     void SetFd(int fd);
 
-    int GetOption() const;
+    EventType GetEventType() const;
 
-    void SetOption(int option);
-
-    int GetEventType() const;
-
-    void SetEventType(int eventType);
+    void SetEventType(EventType event_type);
 
     char *GetBuffer() const;
 
@@ -51,15 +60,20 @@ public:
     io_evnet_type GetTickType() const;
 
     void SetTickType(io_evnet_type tickType);
+
+    static const int BUFFER_SIZE = 1024;
+
+    EventHandler(const EventHandler&) = delete;
+    EventHandler& operator=(const EventHandler&) = delete;
 private:
+    static const int IP_SIZE = 16;
+
     Reactor *reactor_;
 
     int fd_;
-    // 操作
-    int option_;
 
     // 注册的事件
-    int event_type_;
+    EventType event_type_;
 
     io_evnet_type tick_type_;
 
@@ -68,8 +82,8 @@ private:
     const char *ip_;
     int port_;
 
-    EventHandler(const EventHandler&);
-    EventHandler& operator=(const EventHandler&);
+public:
+    void SignalCallback(int signal);
 };
 
 }

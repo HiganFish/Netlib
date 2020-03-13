@@ -25,6 +25,11 @@ struct io_event
     io_evnet_type event_type;
 };
 
+struct evsig_info
+{
+
+};
+
 class OpBase;
 class EventHandler;
 class Reactor
@@ -40,9 +45,13 @@ public:
     int ReactorDispatch();
 
     void SetLisenerFd(int fd);
+
+    EventHandler* GetHandlerBySignal(int signal);
 private:
 
     OpBase* op_base_;
+
+    OpBase* sig_base_;
 
     // 本次循环完成后退出
     int reactor_break_later_;
@@ -63,6 +72,8 @@ private:
 
     // 建立fd 和EentHandler的对应关系
     std::array<EventHandler*, 5000> *event_handler_array;
+    // 信号和信号事件的对应关系
+    std::array<EventHandler*, 100> *signal_event_array;
 
     int lisenfd_;
 };
